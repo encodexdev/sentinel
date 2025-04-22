@@ -29,6 +29,19 @@ struct ProfileView: View {
                         }
                     }
                     
+                    // Appearance Settings
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Display")
+                            .font(.headline)
+                            .padding(.horizontal)
+                        
+                        AppearancePicker(selection: Binding(
+                            get: { vm.appearanceStyle },
+                            set: { vm.updateAppearanceStyle($0) }
+                        ))
+                        .padding(.horizontal)
+                    }
+                    
                     // App Settings
                     CardContainer {
                         VStack(alignment: .leading, spacing: 16) {
@@ -50,37 +63,6 @@ struct ProfileView: View {
                                     Text("Receive alerts and updates")
                                         .font(.caption)
                                         .foregroundColor(Color("SecondaryText"))
-                                }
-                            }
-                            
-                            // Follow System Toggle
-                            Toggle(isOn: $vm.followSystem) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Use System Appearance")
-                                        .font(.subheadline).bold()
-                                    Text("Match your device settings")
-                                        .font(.caption)
-                                        .foregroundColor(Color("SecondaryText"))
-                                }
-                            }
-                            .onChange(of: vm.followSystem) { follow in
-                                vm.toggleFollowSystem(follow)
-                            }
-                            
-                            // Dark Mode Toggle (only shown if not following system)
-                            if !vm.followSystem {
-                                Toggle(
-                                    isOn: Binding(
-                                        get: { vm.settings.preferredColorScheme == .dark },
-                                        set: { vm.toggleDarkMode($0) })
-                                ) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Dark Mode")
-                                            .font(.subheadline).bold()
-                                        Text("Easier on the eyes at night")
-                                            .font(.caption)
-                                            .foregroundColor(Color("SecondaryText"))
-                                    }
                                 }
                             }
                             
@@ -106,20 +88,25 @@ struct ProfileView: View {
                                 .padding(.vertical, 8)
                             
                             // Sign Out
-                            Button(role: .destructive) {
-                                // TODO: sign out
-                            } label: {
-                                HStack {
-                                    Image(systemName: "arrow.backward.circle")
-                                    Text("Sign Out").bold()
+                            HStack {
+                                Spacer()
+                                Button(role: .destructive) {
+                                    // TODO: sign out
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "arrow.backward.circle")
+                                        Text("Sign Out").bold()
+                                    }
+                                    .foregroundColor(Color("StatusOpen"))
                                 }
-                                .foregroundColor(Color("StatusOpen"))
+                                Spacer()
                             }
                         }
                     }
                     
                     Spacer(minLength: 20)
                 }
+                .padding(.horizontal)
                 .padding(.top)
             }
             .background(Color("Background").ignoresSafeArea())

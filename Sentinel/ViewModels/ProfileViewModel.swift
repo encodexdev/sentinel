@@ -13,12 +13,16 @@ final class ProfileViewModel: ObservableObject {
         settingsManager.settings
     }
     
+    // Appearance style property
+    @Published var appearanceStyle: AppearanceStyle = .system
+    
     // Flag to track if we should follow system appearance
     @Published var followSystem: Bool = false
     
     init(settingsManager: SettingsManager) {
         self.settingsManager = settingsManager
         self.followSystem = settings.preferredColorScheme == nil
+        self.appearanceStyle = AppearanceStyle.fromColorScheme(settings.preferredColorScheme)
     }
     
     // Method to update the settings manager reference
@@ -26,6 +30,7 @@ final class ProfileViewModel: ObservableObject {
         self.settingsManager = manager
         self.objectWillChange.send()
         self.followSystem = settings.preferredColorScheme == nil
+        self.appearanceStyle = AppearanceStyle.fromColorScheme(settings.preferredColorScheme)
     }
     
     // Toggle functions
@@ -37,5 +42,12 @@ final class ProfileViewModel: ObservableObject {
     func toggleFollowSystem(_ on: Bool) {
         followSystem = on
         settingsManager.toggleFollowSystem(on)
+    }
+    
+    // Update appearance style
+    func updateAppearanceStyle(_ style: AppearanceStyle) {
+        appearanceStyle = style
+        settingsManager.setColorScheme(style.toColorScheme())
+        followSystem = style == .system
     }
 }
