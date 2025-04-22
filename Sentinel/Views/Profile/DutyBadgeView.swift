@@ -9,8 +9,8 @@ struct DutyBadgeView: View {
       .bold()
       .padding(.horizontal, 12)
       .padding(.vertical, 6)
-      .background(onDuty ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-      .foregroundColor(onDuty ? .green : .red)
+      .background(onDuty ? Color("StatusResolved").opacity(0.2) : Color("StatusOpen").opacity(0.2))
+      .foregroundColor(onDuty ? Color("StatusResolved") : Color("StatusOpen"))
       .clipShape(Capsule())
   }
 }
