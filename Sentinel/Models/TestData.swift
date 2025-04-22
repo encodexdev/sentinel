@@ -1,6 +1,8 @@
 import Foundation
 import MapKit
+import SwiftUI
 
+//TODO: Add default Data enum
 enum TestData {
   static let user = User(
     id: "u1",
@@ -14,9 +16,9 @@ enum TestData {
   )
 
   static let settings = Settings(
-    preferredColorScheme: .light,
-    notificationsEnabled: true,
-    locationEnabled: true
+    preferredColorScheme: nil,  // Follow system by default
+    notificationsEnabled: false,
+    locationEnabled: false
   )
 
   static let incidents: [Incident] = [
