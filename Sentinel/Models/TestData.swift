@@ -1,5 +1,6 @@
 import Foundation
 import MapKit
+import SwiftUI
 
 enum TestData {
   static let user = User(
@@ -14,7 +15,7 @@ enum TestData {
   )
 
   static let settings = Settings(
-    preferredColorScheme: .light,
+    preferredColorScheme: nil, // Follow system by default
     notificationsEnabled: true,
     locationEnabled: true
   )
