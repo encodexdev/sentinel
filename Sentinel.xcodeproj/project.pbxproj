@@ -35,16 +35,6 @@
 			path = Sentinel;
 			sourceTree = "<group>";
 		};
-		988B758C2DB7207600DD139B /* SentinelTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SentinelTests;
-			sourceTree = "<group>";
-		};
-		988B75962DB7207600DD139B /* SentinelUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SentinelUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				988B757B2DB7207400DD139B /* Sentinel */,
-				988B758C2DB7207600DD139B /* SentinelTests */,
-				988B75962DB7207600DD139B /* SentinelUITests */,
 				988B757A2DB7207400DD139B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,9 +118,6 @@
 			dependencies = (
 				988B758B2DB7207600DD139B /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				988B758C2DB7207600DD139B /* SentinelTests */,
-			);
 			name = SentinelTests;
 			packageProductDependencies = (
 			);
@@ -152,9 +137,6 @@
 			);
 			dependencies = (
 				988B75952DB7207600DD139B /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				988B75962DB7207600DD139B /* SentinelUITests */,
 			);
 			name = SentinelUITests;
 			packageProductDependencies = (
@@ -395,7 +377,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Sentinel/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "Sentinel/Preview\\ Content";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -423,7 +405,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Sentinel/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "Sentinel/Preview\\ Content";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
