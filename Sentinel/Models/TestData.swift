@@ -49,4 +49,20 @@ enum TestData {
         status: .resolved
       )
     ]
+
+  static let messages: [Message] = [
+    Message(
+      id: "m1",
+      sender: .assistant,
+      content: "What type of incident would you like to report?",
+      timestamp: Date()
+    ),
+    Message(
+      id: "m2",
+      sender: .user,
+      content: "Suspicious Person",
+      timestamp: Date().addingTimeInterval(5)
+    ),
+  ]
+
 }
