@@ -5,9 +5,9 @@ struct IncidentCard: View {
     
     private var statusColor: Color {
         switch incident.status {
-        case .open:       return .red
-        case .inProgress: return .orange
-        case .resolved:   return .green
+        case .open:       return Color("StatusOpen")
+        case .inProgress: return Color("StatusInProgress")
+        case .resolved:   return Color("StatusResolved")
         }
     }
     
@@ -33,15 +33,15 @@ struct IncidentCard: View {
             if let desc = incident.description {
                 Text(desc)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("SecondaryText"))
             }
             HStack(spacing: 16) {
                 Label(incident.location, systemImage: "mappin.and.ellipse")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("SecondaryText"))
                 Label(formattedTime, systemImage: "clock")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("SecondaryText"))
             }
         }
         .padding(.horizontal)

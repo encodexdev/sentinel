@@ -1,9 +1,19 @@
 import SwiftUI
 
 struct ChatView: View {
-  var body: some View {
-    Text("Chat View")
-      .font(.largeTitle)
-      .foregroundColor(.secondary)
-  }
+    @StateObject private var viewModel = ChatViewModel()
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                ChatMessageList()
+                Divider()
+                ChatInputBar()
+            }
+            .navigationTitle("Report Incident")
+            .navigationBarTitleDisplayMode(.inline)
+            .background(Color("Background").ignoresSafeArea())
+            .environmentObject(viewModel)
+        }
+    }
 }

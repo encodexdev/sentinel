@@ -18,7 +18,7 @@ struct ProfileView: View {
                   .font(.title3).bold()
                 Text(vm.user.role)
                   .font(.subheadline)
-                  .foregroundColor(.secondary)
+                  .foregroundColor(Color("SecondaryText"))
               }
 
               Spacer()
@@ -40,7 +40,7 @@ struct ProfileView: View {
                     .font(.subheadline).bold()
                   Text("Receive alerts and updates")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("SecondaryText"))
                 }
               }
 
@@ -55,7 +55,7 @@ struct ProfileView: View {
                     .font(.subheadline).bold()
                   Text("Easier on the eyes at night")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("SecondaryText"))
                 }
               }
 
@@ -67,7 +67,7 @@ struct ProfileView: View {
                   Image(systemName: "arrow.backward.circle")
                   Text("Sign Out").bold()
                 }
-                .foregroundColor(.red)
+                .foregroundColor(Color("StatusOpen"))
               }
             }
           }

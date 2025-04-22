@@ -20,7 +20,7 @@ struct HomeView: View {
                             .font(.largeTitle).bold()
                         Text("Shift started at 8:00 AM")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color("SecondaryText"))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -32,7 +32,7 @@ struct HomeView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.accentColor)
+                            .background(Color("AccentBlue"))
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
