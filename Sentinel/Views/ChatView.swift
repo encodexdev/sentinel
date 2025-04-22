@@ -14,7 +14,3 @@ struct ChatView: View {
       .foregroundColor(.secondary)
   }
 }
-
-#Preview {
-    ChatView()
-}

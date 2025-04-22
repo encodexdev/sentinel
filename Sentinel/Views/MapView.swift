@@ -14,7 +14,3 @@ struct MapView: View {
       .foregroundColor(.secondary)
   }
 }
-
-#Preview {
-    MapView()
-}

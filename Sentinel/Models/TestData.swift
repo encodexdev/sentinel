@@ -14,7 +14,9 @@ enum TestData {
   )
 
   static let settings = Settings(
-    preferredColorScheme: .light
+    preferredColorScheme: .light,
+    notificationsEnabled: true,
+    locationEnabled: true
   )
 
   static let incidents: [Incident] = [
