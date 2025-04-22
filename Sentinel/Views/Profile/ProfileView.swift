@@ -1,43 +1,5 @@
 import SwiftUI
 
-// MARK: - DutyBadgeView
-
-struct DutyBadgeView: View {
-  let onDuty: Bool
-
-  var body: some View {
-    Text(onDuty ? "On Duty" : "Off Duty")
-      .font(.caption)
-      .bold()
-      .padding(.horizontal, 12)
-      .padding(.vertical, 6)
-      .background(onDuty ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-      .foregroundColor(onDuty ? .green : .red)
-      .clipShape(Capsule())
-  }
-}
-
-// MARK: - CardContainer
-
-struct CardContainer<Content: View>: View {
-  let content: Content
-
-  init(@ViewBuilder content: () -> Content) {
-    self.content = content()
-  }
-
-  var body: some View {
-    content
-      .padding()
-      .background(Color("CardBackground"))
-      .cornerRadius(12)
-      .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 4)
-      .padding(.horizontal)
-  }
-}
-
-// MARK: - ProfileView
-
 struct ProfileView: View {
   @StateObject private var vm = ProfileViewModel()
 
