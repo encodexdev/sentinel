@@ -109,7 +109,7 @@ struct ProfileView: View {
                 .padding(.horizontal)
                 .padding(.top)
             }
-            .background(Color("Background").ignoresSafeArea())
+            // Global background handled by SentinelApp
             .navigationTitle("Profile & Settings")
             .onAppear {
                 // Update the view model with the environment's settings manager

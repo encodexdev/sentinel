@@ -44,6 +44,7 @@ enum AppearanceStyle: String, CaseIterable, Identifiable {
     case .none: return .system
     case .some(.light): return .light
     case .some(.dark): return .dark
+    @unknown default: return .system
     }
   }
 }

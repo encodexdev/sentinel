@@ -14,8 +14,12 @@ struct ChatInputBar: View {
             TextField("Type your message…", text: $vm.inputText)
                 .focused($inputFocused)
                 .padding(8)
-                .background(Color("CardBackground"))
+                .background(Color("Background"))
                 .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color("DividerLine"), lineWidth: 1)
+                )
             Button { vm.sendMessage() } label: {
                 Image(systemName: "paperplane.fill")
                     .rotationEffect(.degrees(45))
@@ -24,7 +28,9 @@ struct ChatInputBar: View {
             }
             .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .padding(.horizontal).padding(.vertical, 8)
-        .background(Color("Background"))
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        // Background handled globally
+        .padding(.horizontal)
     }
 }

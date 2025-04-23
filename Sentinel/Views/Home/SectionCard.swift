@@ -36,10 +36,10 @@ struct SectionCard<Content: View>: View {
       VStack(spacing: 8) {
         content
       }
-      .padding(.vertical, 8)
+      .padding(.vertical, 12)
     }
     .background(Color("CardBackground"))
-    .cornerRadius(12)
+    .cornerRadius(16)
     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 4)
   }
 }
