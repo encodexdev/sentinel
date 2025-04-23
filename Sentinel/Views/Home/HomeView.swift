@@ -14,6 +14,9 @@ struct HomeView: View {
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
 
+  @State private var showingChatView = false
+  @State private var showingMapView = false
+  
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -32,7 +35,7 @@ struct HomeView: View {
 
           // MARK: Report Button
           Button {
-            // TODO: navigate to ChatView
+            showingChatView = true
           } label: {
             Label("Report New Incident", systemImage: "exclamationmark.bubble")
               .font(.headline)
@@ -43,7 +46,7 @@ struct HomeView: View {
               .cornerRadius(12)
           }
           .padding(.horizontal, 16)
-          .padding(.top, 8)
+          .padding(.vertical, 8)
 
           // MARK: Map Overview
           SectionCard(title: "Map Overview") {
@@ -53,7 +56,7 @@ struct HomeView: View {
                 .cornerRadius(12)
 
               Button {
-                // TODO: Navigate to full map
+                showingMapView = true
               } label: {
                 Text("Open Map")
                   .padding(.horizontal, 16)
@@ -65,8 +68,8 @@ struct HomeView: View {
               .buttonStyle(.borderedProminent)
             }
           }
-          .padding(.horizontal, 16)
-
+          .padding(.all, 16)  // Added vertical padding
+          
           // MARK: My Incidents Section
           SectionCard(
             title: "My Incidents",
@@ -75,19 +78,23 @@ struct HomeView: View {
               // TODO: handle "View all"
             }
           ) {
-            ForEach(vm.myIncidents) { incident in
-              IncidentCard(incident: incident)
+            VStack(spacing: 8) {
+              ForEach(vm.myIncidents) { incident in
+                IncidentCard(incident: incident)
+              }
             }
           }
-          .padding(.horizontal, 16)
+          .padding(.all, 16)
 
           // MARK: Team Incidents Section
           SectionCard(title: "Team Incidents") {
-            ForEach(vm.teamIncidents) { incident in
-              IncidentCard(incident: incident)
+            VStack(spacing: 8) {
+              ForEach(vm.teamIncidents) { incident in
+                IncidentCard(incident: incident)
+              }
             }
           }
-          .padding(.horizontal, 16)
+          .padding(.all, 16)
 
           Spacer(minLength: 20)
         }
@@ -95,6 +102,12 @@ struct HomeView: View {
       }
       // Global background handled by SentinelApp
       .navigationTitle("Home")
+      .sheet(isPresented: $showingMapView) {
+        MapView()
+      }
+      .fullScreenCover(isPresented: $showingChatView) {
+        ChatView()
+      }
     }
   }
 }

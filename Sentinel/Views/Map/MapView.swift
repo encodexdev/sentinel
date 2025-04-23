@@ -43,6 +43,7 @@ struct IncidentAnnotation: Identifiable {
 
 struct MapView: View {
   @StateObject private var vm = MapViewModel()
+  @Environment(\.dismiss) private var dismiss
   
   func color(for status: IncidentStatus) -> Color {
     switch status {
@@ -66,17 +67,20 @@ struct MapView: View {
         }
       }
       .navigationTitle("Map")
-      .overlay(alignment: .topTrailing) {
-        Button {
-          vm.centerOnUser()
-        } label: {
-          Image(systemName: "location.fill")
-            .padding()
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-            .shadow(radius: 4)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            vm.centerOnUser()
+          } label: {
+            Image(systemName: "location.fill")
+          }
         }
-        .padding()
+        
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Done") {
+            dismiss()
+          }
+        }
       }
       // Global background handled by SentinelApp
     }
