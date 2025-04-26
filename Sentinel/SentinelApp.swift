@@ -14,8 +14,6 @@ struct SentinelApp: App {
   var body: some Scene {
     WindowGroup {
       ZStack {
-        Color("CardBackground")
-          .ignoresSafeArea()
         MainTabView()
       }
       .environmentObject(settingsManager)
@@ -27,7 +25,7 @@ struct SentinelApp: App {
   private func configureTabBarAppearance() {
     let tabBarAppearance = UITabBarAppearance()
     tabBarAppearance.configureWithOpaqueBackground()
-    // tabBarAppearance.backgroundColor = UIColor(named: "CardBackground")
+     tabBarAppearance.backgroundColor = UIColor(named: "CardBackground")
 
     UITabBar.appearance().standardAppearance = tabBarAppearance
     if #available(iOS 15.0, *) {
