@@ -38,21 +38,29 @@ class SettingsManager: ObservableObject {
   }
 
   func setColorScheme(_ scheme: ColorScheme?) {
+    self.colorScheme = scheme  // Directly update colorScheme property first
+    
+    var updatedSettings = settings
+    updatedSettings.preferredColorScheme = scheme
+    settings = updatedSettings  // Then update settings to trigger persistence
+  }
+
+  // Toggle dark mode on/off (nil = follow system)
+  func toggleDarkMode(_ on: Bool) {
+    let scheme = on ? ColorScheme.dark : ColorScheme.light
+    self.colorScheme = scheme  // Directly update colorScheme
+    
     var updatedSettings = settings
     updatedSettings.preferredColorScheme = scheme
     settings = updatedSettings  // Trigger the @Published update
   }
 
-  // Toggle dark mode on/off (nil = follow system)
-  func toggleDarkMode(_ on: Bool) {
-    var updatedSettings = settings
-    updatedSettings.preferredColorScheme = on ? .dark : .light
-    settings = updatedSettings  // Trigger the @Published update
-  }
-
   func toggleFollowSystem(_ follow: Bool) {
+    let scheme: ColorScheme? = follow ? nil : .light
+    self.colorScheme = scheme  // Directly update colorScheme
+    
     var updatedSettings = settings
-    updatedSettings.preferredColorScheme = follow ? nil : .light
+    updatedSettings.preferredColorScheme = scheme
     settings = updatedSettings  // Trigger the @Published update
   }
   

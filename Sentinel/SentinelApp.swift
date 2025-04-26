@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 @main
 struct SentinelApp: App {
@@ -21,8 +22,6 @@ struct SentinelApp: App {
                     .preferredColorScheme(settingsManager.colorScheme)
                     // Make settings manager available to all views
                     .environmentObject(settingsManager)
-                    // Force refresh when settings change
-                    .id(settingsManager.settings.preferredColorScheme)
             }
         }
     }
