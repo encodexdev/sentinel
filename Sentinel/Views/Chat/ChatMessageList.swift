@@ -10,21 +10,32 @@ struct ChatMessageList: View {
     ScrollViewReader { proxy in
       ScrollView {
         LazyVStack(spacing: 12) {
-          ForEach(vm.messages) { msg in
-            ChatBubble(message: msg)
-              .id(msg.id)
-            if vm.shouldShowChips(after: msg) {
-              SuggestionChips(suggestions: incidentTypes) {
-                vm.selectIncidentType($0)
+          ForEach(vm.items) { item in
+            switch item {
+            case .text(let msg):
+              ChatBubble(message: msg)
+                .id(item.id)
+              if vm.shouldShowChips(after: item) {
+                SuggestionChips(suggestions: incidentTypes) {
+                  vm.selectIncidentType($0)
+                }
+                .padding(.top, 8)
               }
-              .padding(.top, 8)
+            case .emergency(let level, _):
+              // Replace with your emergency bubble view
+              EmergencyBubble(level: level)
+                .id(item.id)
+            case .image(let count, _):
+              // Replace with your image bubble view
+              ImageBubble(count: count)
+                .id(item.id)
             }
           }
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 12)
       }
-      .onChange(of: vm.messages.count) {
+      .onChange(of: vm.items.count) {
         vm.scrollToBottom(proxy)
       }
     }

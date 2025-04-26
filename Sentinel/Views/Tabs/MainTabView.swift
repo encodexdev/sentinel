@@ -25,9 +25,9 @@ struct MainTabView: View {
 
             ChatView()
                 .tabItem {
-                    Image(uiImage: Lucide.messageSquare.withRenderingMode(.alwaysTemplate)
+                    Image(uiImage: Lucide.messageSquareWarning.withRenderingMode(.alwaysTemplate)
                         .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Chat")
+                    Text("Report")
                 }
 
             MapView()

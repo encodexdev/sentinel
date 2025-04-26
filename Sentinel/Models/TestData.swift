@@ -52,18 +52,20 @@ enum TestData {
       )
     ]
 
-  static let messages: [Message] = [
-    Message(
+  static let messages: [ChatMessage] = [
+    ChatMessage(
       id: "m1",
-      sender: .assistant,
+      role: .assistant,
       content: "What type of incident would you like to report?",
-      timestamp: Date()
+      timestamp: Date(),
+      messageType: .chat
     ),
-    Message(
+    ChatMessage(
       id: "m2",
-      sender: .user,
+      role: .user,
       content: "Suspicious Person",
-      timestamp: Date().addingTimeInterval(5)
+      timestamp: Date().addingTimeInterval(5),
+      messageType: .chat
     ),
   ]
 

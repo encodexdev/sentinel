@@ -63,8 +63,7 @@ struct HomeView: View {
                 showingMapView = true
               } label: {
                 Text("Open Map")
-                  .padding(.horizontal, 16)
-                  .padding(.vertical, 8)
+                  .padding(.all, 8)
                   .background(.ultraThinMaterial)
                   .cornerRadius(8)
                   .shadow(radius: 5)
