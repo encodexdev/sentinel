@@ -28,35 +28,17 @@ enum AppearanceMode: String, CaseIterable {
 
 final class SettingsViewModel: ObservableObject {
     // Reference to the global settings manager
-    private var settingsManager: SettingsManager
+    @Published var settingsManager: SettingsManager
     private var cancellables = Set<AnyCancellable>()
     
-    // Appearance mode selection
-    @Published var appearanceMode: AppearanceMode = .system {
-        didSet {
-            if oldValue != appearanceMode {
-                updateAppearanceMode(appearanceMode)
-            }
-        }
-    }
+    // Appearance mode
+    @Published var appearanceMode: AppearanceMode = .system
     
     // Notification settings
-    @Published var notificationsEnabled: Bool = false {
-        didSet {
-            if oldValue != notificationsEnabled {
-                toggleNotifications(notificationsEnabled)
-            }
-        }
-    }
+    @Published var notificationsEnabled: Bool = false
     
     // Location settings
-    @Published var locationEnabled: Bool = false {
-        didSet {
-            if oldValue != locationEnabled {
-                toggleLocationServices(locationEnabled)
-            }
-        }
-    }
+    @Published var locationEnabled: Bool = false
     
     init(settingsManager: SettingsManager) {
         self.settingsManager = settingsManager
@@ -66,6 +48,32 @@ final class SettingsViewModel: ObservableObject {
         settingsManager.$settings
             .sink { [weak self] newSettings in
                 self?.updateFromSettings()
+            }
+            .store(in: &cancellables)
+        
+        // Setup publishers to update settings when view model properties change
+        // React to changes in the UI bindings by calling the appropriate methods
+        $appearanceMode
+            .dropFirst() // Skip the initial value to avoid triggering on initialization
+            .sink { [weak self] newMode in
+                guard let self = self else { return }
+                self.updateAppearanceMode(newMode)
+            }
+            .store(in: &cancellables)
+            
+        $notificationsEnabled
+            .dropFirst() // Skip the initial value
+            .sink { [weak self] enabled in
+                guard let self = self else { return }
+                self.toggleNotifications(enabled)
+            }
+            .store(in: &cancellables)
+            
+        $locationEnabled
+            .dropFirst() // Skip the initial value
+            .sink { [weak self] enabled in
+                guard let self = self else { return }
+                self.toggleLocationServices(enabled)
             }
             .store(in: &cancellables)
     }
@@ -81,33 +89,21 @@ final class SettingsViewModel: ObservableObject {
     func updateSettingsManager(_ manager: SettingsManager) {
         self.settingsManager = manager
         self.updateFromSettings()
-        
-        // Setup publisher to observe changes in the new settings manager
-        settingsManager.$settings
-            .sink { [weak self] newSettings in
-                self?.updateFromSettings()
-            }
-            .store(in: &cancellables)
     }
     
     // Update appearance mode
     private func updateAppearanceMode(_ mode: AppearanceMode) {
-        var updatedSettings = settingsManager.settings
-        updatedSettings.preferredColorScheme = mode.toColorScheme()
-        settingsManager.settings = updatedSettings
+        settingsManager.setColorScheme(mode.toColorScheme())
     }
     
     // Toggle notifications
     private func toggleNotifications(_ enabled: Bool) {
-        var updatedSettings = settingsManager.settings
-        updatedSettings.notificationsEnabled = enabled
-        settingsManager.settings = updatedSettings
+        settingsManager.setNotificationsEnabled(enabled)
     }
     
     // Toggle location services
     private func toggleLocationServices(_ enabled: Bool) {
-        var updatedSettings = settingsManager.settings
-        updatedSettings.locationEnabled = enabled
-        settingsManager.settings = updatedSettings
+        settingsManager.setLocationEnabled(enabled)
     }
 }
+

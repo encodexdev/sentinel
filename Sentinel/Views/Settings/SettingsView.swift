@@ -8,39 +8,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Appearance") {
-                    // Appearance Mode Picker
-                    Picker("Appearance", selection: $vm.appearanceMode) {
-                        ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.navigationLink)
-                    
-                    // Language Picker
-                    NavigationLink {
-                        Text("Language settings would go here")
-                    } label: {
-                        HStack {
-                            Text("Language")
-                            Spacer()
-                            Text("English")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-                
-                Section("Notifications") {
-                    Toggle(isOn: $vm.notificationsEnabled) {
-                        Text("Push Notifications")
-                    }
-                    
-                    NavigationLink {
-                        Text("Notification preferences would go here")
-                    } label: {
-                        Text("Notification Preferences")
-                    }
-                }
                 
                 Section("Account") {
                     NavigationLink {
@@ -69,6 +36,41 @@ struct SettingsView: View {
                         Text("Billing History")
                     }
                 }
+                
+                Section("Appearance") {
+                    // Appearance Mode Picker - Dropdown Style
+                    Picker("Theme", selection: $vm.appearanceMode) {
+                        ForEach(AppearanceMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    
+                    // Language Picker
+                    NavigationLink {
+                        Text("Language settings would go here")
+                    } label: {
+                        HStack {
+                            Text("Language")
+                            Spacer()
+                            Text("English")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+                
+                Section("Notifications") {
+                    Toggle(isOn: $vm.notificationsEnabled) {
+                        Text("Push Notifications")
+                    }
+                    
+                    NavigationLink {
+                        Text("Notification preferences would go here")
+                    } label: {
+                        Text("Notification Preferences")
+                    }
+                }
+                
+                
                 
                 Section("Privacy & Security") {
                     NavigationLink {
@@ -108,6 +110,7 @@ struct SettingsView: View {
                 }
             }
             .onAppear {
+                // Update the view model with the shared environment settings manager
                 vm.updateSettingsManager(settingsManager)
             }
         }

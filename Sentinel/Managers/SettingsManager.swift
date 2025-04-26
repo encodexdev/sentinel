@@ -38,16 +38,36 @@ class SettingsManager: ObservableObject {
   }
 
   func setColorScheme(_ scheme: ColorScheme?) {
-    settings.preferredColorScheme = scheme
+    var updatedSettings = settings
+    updatedSettings.preferredColorScheme = scheme
+    settings = updatedSettings  // Trigger the @Published update
   }
 
   // Toggle dark mode on/off (nil = follow system)
   func toggleDarkMode(_ on: Bool) {
-    settings.preferredColorScheme = on ? .dark : .light
+    var updatedSettings = settings
+    updatedSettings.preferredColorScheme = on ? .dark : .light
+    settings = updatedSettings  // Trigger the @Published update
   }
 
   func toggleFollowSystem(_ follow: Bool) {
-    settings.preferredColorScheme = follow ? nil : .light
+    var updatedSettings = settings
+    updatedSettings.preferredColorScheme = follow ? nil : .light
+    settings = updatedSettings  // Trigger the @Published update
+  }
+  
+  // Set notifications enabled/disabled
+  func setNotificationsEnabled(_ enabled: Bool) {
+    var updatedSettings = settings
+    updatedSettings.notificationsEnabled = enabled
+    settings = updatedSettings  // Trigger the @Published update
+  }
+  
+  // Set location services enabled/disabled
+  func setLocationEnabled(_ enabled: Bool) {
+    var updatedSettings = settings
+    updatedSettings.locationEnabled = enabled
+    settings = updatedSettings  // Trigger the @Published update
   }
 
   private func saveSettings() {
