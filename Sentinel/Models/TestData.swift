@@ -5,13 +5,14 @@ import SwiftUI
 //TODO: Add default Data enum
 enum TestData {
   static let user = User(
-    id: "u1",
-    fullName: "John Doe",
+    id: "GB4589",
+    fullName: "Marcus Brooks",
     role: "Security Officer",
-    // TODO: Use a real image URL for the avatar through DB
-    avatarURL: "https://cdn-icons-png.flaticon.com/512/8631/8631487.png"
-      .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-      .flatMap(URL.init),
+    avatarURL: nil,
+    avatarImageName: "ProfileImage", // Use local image asset
+    email: "marcus.brooks@gmail.com",
+    phoneNumber: "(555) 123-4567",
+    startDate: "08/15/2023",
     isOnDuty: true
   )
 
