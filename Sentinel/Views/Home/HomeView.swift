@@ -108,6 +108,7 @@ struct HomeView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           ProfileIcon(user: TestData.user)
+            .padding(.bottom, 8)  // Add padding below the profile icon
         }
       }
       .sheet(isPresented: $showingMapView) {

@@ -125,7 +125,7 @@ struct ProfileFullView: View {
                 
                 // Payment History
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Payment")
+                    Text("Payments")
                         .font(.headline)
                         .padding(.horizontal, 16)
                     

@@ -12,12 +12,12 @@ struct ProfileIcon: View {
                 avatarImage
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 32, height: 32)
                     .clipShape(Circle())
             } else {
                 Circle()
                     .fill(Color("AccentBlue").opacity(0.3))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 32, height: 32)
                     .overlay(
                         Text(initials)
                             .font(.caption)
