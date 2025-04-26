@@ -1,19 +1,48 @@
 import SwiftUI
+import LucideIcons
+import UIKit
+
+// Extension to resize UIImages properly
+extension UIImage {
+    func resized(to size: CGSize) -> UIImage {
+        return UIGraphicsImageRenderer(size: size).image { _ in
+            draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
+}
 
 struct MainTabView: View {
-  var body: some View {
-    TabView {
-      HomeView()
-        .tabItem { Label("Home", systemImage: "shield") }
+    private let iconSize: CGFloat = 28
+    
+    var body: some View {
+        TabView {
+            HomeView()
+                .tabItem {
+                    Image(uiImage: Lucide.house.withRenderingMode(.alwaysTemplate)
+                        .resized(to: CGSize(width: iconSize, height: iconSize)))
+                    Text("Home")
+                }
 
-      ChatView()
-        .tabItem { Label("Chat", systemImage: "message") }
+            ChatView()
+                .tabItem {
+                    Image(uiImage: Lucide.messageSquare.withRenderingMode(.alwaysTemplate)
+                        .resized(to: CGSize(width: iconSize, height: iconSize)))
+                    Text("Chat")
+                }
 
-      MapView()
-        .tabItem { Label("Map", systemImage: "map") }
+            MapView()
+                .tabItem {
+                    Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate)
+                        .resized(to: CGSize(width: iconSize, height: iconSize)))
+                    Text("Map")
+                }
 
-      ProfileView()
-        .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+            ProfileView()
+                .tabItem {
+                    Image(uiImage: Lucide.user.withRenderingMode(.alwaysTemplate)
+                        .resized(to: CGSize(width: iconSize, height: iconSize)))
+                    Text("Profile") 
+                }
+        }
     }
-  }
 }

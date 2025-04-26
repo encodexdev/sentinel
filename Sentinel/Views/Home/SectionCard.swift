@@ -19,7 +19,7 @@ struct SectionCard<Content: View>: View {
   }
 
   var body: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: 16) {  // Increased spacing between header and content
       HStack {
         Text(title)
           .font(.headline)
@@ -28,18 +28,21 @@ struct SectionCard<Content: View>: View {
           Button(action: action) {
             Text(actionTitle)
               .font(.subheadline)
+              .foregroundColor(Color("AccentBlue"))
           }
         }
       }
-      .padding(.horizontal)
+      .padding(.horizontal, 16)
+      .padding(.top, 16)  // Added top padding
 
-      VStack(spacing: 8) {
+      VStack(spacing: 12) {  // Increased spacing between content items
         content
       }
-      .padding(.vertical, 8)
+      .padding(.horizontal, 16)
+      .padding(.bottom, 16)  // Explicit bottom padding
     }
     .background(Color("CardBackground"))
-    .cornerRadius(12)
+    .cornerRadius(16)
     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 4)
   }
 }

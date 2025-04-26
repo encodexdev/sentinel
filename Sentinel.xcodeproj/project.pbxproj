@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		988B76822DB8859600DD139B /* LucideIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 988B76812DB8859600DD139B /* LucideIcons */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		988B758A2DB7207600DD139B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -42,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				988B76822DB8859600DD139B /* LucideIcons in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +105,7 @@
 			);
 			name = Sentinel;
 			packageProductDependencies = (
+				988B76812DB8859600DD139B /* LucideIcons */,
 			);
 			productName = Sentinel;
 			productReference = 988B75792DB7207400DD139B /* Sentinel.app */;
@@ -177,6 +183,9 @@
 			);
 			mainGroup = 988B75702DB7207400DD139B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 988B757A2DB7207400DD139B /* Products */;
 			projectDirPath = "";
@@ -534,6 +543,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/JakubMazur/lucide-icons-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.503.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		988B76812DB8859600DD139B /* LucideIcons */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */;
+			productName = LucideIcons;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 988B75712DB7207400DD139B /* Project object */;
 }

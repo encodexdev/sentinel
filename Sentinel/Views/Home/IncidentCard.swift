@@ -44,9 +44,16 @@ struct IncidentCard: View {
                     .foregroundColor(Color("SecondaryText"))
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
         .background(Color("Background"))
-        .cornerRadius(8)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
+        .padding(.vertical, 4)
     }
+}
+
+
+#Preview {
+    IncidentCard(incident: TestData.incidents[0])
 }
