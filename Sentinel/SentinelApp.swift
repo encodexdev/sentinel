@@ -15,14 +15,12 @@ struct SentinelApp: App {
         WindowGroup {
             ZStack {
                 Color("CardBackground")
-                    .ignoresSafeArea() // fill behind everything
-                
+                    .ignoresSafeArea()
                 MainTabView()
-                    // Apply color scheme from settings
-                    .preferredColorScheme(settingsManager.colorScheme)
-                    // Make settings manager available to all views
-                    .environmentObject(settingsManager)
             }
+            .environmentObject(settingsManager)
+            .preferredColorScheme(settingsManager.colorScheme)
+            .id(settingsManager.colorScheme)
         }
     }
     

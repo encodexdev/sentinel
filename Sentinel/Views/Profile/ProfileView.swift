@@ -3,8 +3,7 @@ import SwiftUI
 struct ProfileView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var showingSettings = false
-  @StateObject private var vm = ProfileViewModel(settingsManager: SettingsManager())
-  @EnvironmentObject var settingsManager: SettingsManager
+  @StateObject private var vm = ProfileViewModel()
 
   // Sample stats data
   private let incidentsCount = 32
@@ -173,10 +172,6 @@ struct ProfileView: View {
     }
     .sheet(isPresented: $showingSettings) {
       SettingsView()
-    }
-    .onAppear {
-      // Update the view model with the environment's settings manager
-      vm.updateSettingsManager(settingsManager)
     }
   }
 
