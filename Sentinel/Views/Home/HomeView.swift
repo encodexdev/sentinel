@@ -3,9 +3,11 @@ import SwiftUI
 
 struct HomeView: View {
   @StateObject private var vm = HomeViewModel()
-  @State private var region = MKCoordinateRegion(
-    center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+  @State private var position = MapCameraPosition.region(
+    MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+      span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    )
   )
 
   // Extract first name from TestData.user
@@ -51,7 +53,9 @@ struct HomeView: View {
           // MARK: Map Overview
           SectionCard(title: "Map Overview") {
             ZStack {
-              Map(coordinateRegion: $region, showsUserLocation: true)
+              Map(position: $position) {
+                UserAnnotation()
+              }
                 .frame(height: 180)
                 .cornerRadius(12)
 
@@ -68,7 +72,7 @@ struct HomeView: View {
               .buttonStyle(.borderedProminent)
             }
           }
-          .padding(.all, 16)  // Added vertical padding
+          .padding(.horizontal, 16)  // Added vertical padding
           
           // MARK: My Incidents Section
           SectionCard(
@@ -84,7 +88,7 @@ struct HomeView: View {
               }
             }
           }
-          .padding(.all, 16)
+          .padding(.horizontal, 16)
 
           // MARK: Team Incidents Section
           SectionCard(title: "Team Incidents") {
@@ -94,7 +98,7 @@ struct HomeView: View {
               }
             }
           }
-          .padding(.all, 16)
+          .padding(.horizontal, 16)
 
           Spacer(minLength: 20)
         }

@@ -24,7 +24,7 @@ struct ChatMessageList: View {
         .padding(.vertical, 16)
         .padding(.horizontal, 12)
       }
-      .onChange(of: vm.messages.count) { count in
+      .onChange(of: vm.messages.count) {
         vm.scrollToBottom(proxy)
       }
     }

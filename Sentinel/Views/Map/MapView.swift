@@ -2,9 +2,11 @@ import SwiftUI
 import MapKit
 
 class MapViewModel: ObservableObject {
-  @Published var region = MKCoordinateRegion(
-    center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+  @Published var position = MapCameraPosition.region(
+    MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+      span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    )
   )
   
   @Published var incidents: [IncidentAnnotation] = []
@@ -28,8 +30,12 @@ class MapViewModel: ObservableObject {
   func centerOnUser() {
     // In a real app, this would get the user's location
     withAnimation {
-      self.region.center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
-      self.region.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+      self.position = MapCameraPosition.region(
+        MKCoordinateRegion(
+          center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+          span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+      )
     }
   }
 }
@@ -55,15 +61,16 @@ struct MapView: View {
 
   var body: some View {
     NavigationStack {
-      Map(coordinateRegion: $vm.region,
-          annotationItems: vm.incidents) { incident in
-        MapAnnotation(coordinate: incident.coordinate) {
-          VStack {
-            Image(systemName: "mappin.circle.fill")
-              .font(.title2)
-              .foregroundColor(color(for: incident.status))
+      Map(position: $vm.position) {
+        ForEach(vm.incidents) { incident in
+          Annotation(incident.id, coordinate: incident.coordinate) {
+            VStack {
+              Image(systemName: "mappin.circle.fill")
+                .font(.title2)
+                .foregroundColor(color(for: incident.status))
+            }
+            .background(Circle().fill(.white).frame(width: 12, height: 12))
           }
-          .background(Circle().fill(.white).frame(width: 12, height: 12))
         }
       }
       .navigationTitle("Map")
