@@ -37,11 +37,11 @@ struct MainTabView: View {
                     Text("Map")
                 }
 
-            ProfileView()
+            IncidentsView()
                 .tabItem {
-                    Image(uiImage: Lucide.user.withRenderingMode(.alwaysTemplate)
+                    Image(uiImage: Lucide.clipboard.withRenderingMode(.alwaysTemplate)
                         .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Profile") 
+                    Text("Incidents") 
                 }
         }
     }

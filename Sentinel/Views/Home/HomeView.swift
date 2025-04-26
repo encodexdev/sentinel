@@ -23,7 +23,6 @@ struct HomeView: View {
     NavigationStack {
       ScrollView {
         VStack(spacing: 24) {
-
           // MARK: Greeting
           VStack(alignment: .leading, spacing: 4) {
             Text("Welcome, \(firstName)")
@@ -105,6 +104,12 @@ struct HomeView: View {
       }
       // Global background handled by SentinelApp
       .navigationTitle("Home")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          ProfileIcon(user: TestData.user)
+        }
+      }
       .sheet(isPresented: $showingMapView) {
         MapView()
       }
