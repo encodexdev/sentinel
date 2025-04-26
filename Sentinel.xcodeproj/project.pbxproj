@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		982BA9112DBD49690028AC9E /* DotEnv in Frameworks */ = {isa = PBXBuildFile; productRef = 982BA9102DBD49690028AC9E /* DotEnv */; };
 		988B76822DB8859600DD139B /* LucideIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 988B76812DB8859600DD139B /* LucideIcons */; };
 /* End PBXBuildFile section */
 
@@ -46,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				982BA9112DBD49690028AC9E /* DotEnv in Frameworks */,
 				988B76822DB8859600DD139B /* LucideIcons in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,6 +108,7 @@
 			name = Sentinel;
 			packageProductDependencies = (
 				988B76812DB8859600DD139B /* LucideIcons */,
+				982BA9102DBD49690028AC9E /* DotEnv */,
 			);
 			productName = Sentinel;
 			productReference = 988B75792DB7207400DD139B /* Sentinel.app */;
@@ -185,6 +188,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */,
+				982BA90F2DBD49690028AC9E /* XCRemoteSwiftPackageReference "DotEnv" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 988B757A2DB7207400DD139B /* Products */;
@@ -545,6 +549,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		982BA90F2DBD49690028AC9E /* XCRemoteSwiftPackageReference "DotEnv" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftpackages/DotEnv.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/JakubMazur/lucide-icons-swift.git";
@@ -556,6 +568,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		982BA9102DBD49690028AC9E /* DotEnv */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 982BA90F2DBD49690028AC9E /* XCRemoteSwiftPackageReference "DotEnv" */;
+			productName = DotEnv;
+		};
 		988B76812DB8859600DD139B /* LucideIcons */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 988B76802DB8858A00DD139B /* XCRemoteSwiftPackageReference "lucide-icons-swift" */;

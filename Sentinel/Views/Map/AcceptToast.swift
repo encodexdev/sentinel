@@ -6,7 +6,7 @@ struct AcceptToast: View {
   let onAccept: () -> Void
   let onTimeout: () -> Void
 
-  @State private var sliderValue: Double = 1.0
+  @State private var sliderValue: Double = 0.0
   @State private var timer: Timer?
   
   // Store fare as a state so it remains constant during the toast lifetime
@@ -39,7 +39,7 @@ struct AcceptToast: View {
       }
       
       // Progress bar instead of slider
-      ProgressView(value: sliderValue)
+      ProgressView(value: sliderValue, total: 1.0)
         .padding(.vertical, 4)
       
       // Accept button

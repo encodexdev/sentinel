@@ -1,6 +1,6 @@
 import Foundation
 
-enum MessageSender: String, Codable {
+enum ChatRole: String, Codable {
   case user
   case assistant
   case system
