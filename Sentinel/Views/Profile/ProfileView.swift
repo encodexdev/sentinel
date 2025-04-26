@@ -172,7 +172,7 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsDetailView()
+            SettingsView()
         }
         .onAppear {
             // Update the view model with the environment's settings manager
@@ -215,126 +215,6 @@ struct ProfileView: View {
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
-    }
-}
-
-struct SettingsDetailView: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var settingsManager: SettingsManager
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Appearance") {
-                    // Dark Mode Toggle
-                    Toggle(isOn: Binding(
-                        get: { settingsManager.settings.preferredColorScheme == .dark },
-                        set: { newValue in
-                            var updatedSettings = settingsManager.settings
-                            updatedSettings.preferredColorScheme = newValue ? .dark : .light
-                            settingsManager.settings = updatedSettings
-                        }
-                    )) {
-                        Text("Dark Mode")
-                    }
-                    
-                    // Language Picker
-                    NavigationLink {
-                        Text("Language settings would go here")
-                    } label: {
-                        HStack {
-                            Text("Language")
-                            Spacer()
-                            Text("English")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-                
-                Section("Notifications") {
-                    Toggle(isOn: Binding(
-                        get: { settingsManager.settings.notificationsEnabled },
-                        set: { newValue in
-                            var updatedSettings = settingsManager.settings
-                            updatedSettings.notificationsEnabled = newValue
-                            settingsManager.settings = updatedSettings
-                        }
-                    )) {
-                        Text("Push Notifications")
-                    }
-                    
-                    NavigationLink {
-                        Text("Notification preferences would go here")
-                    } label: {
-                        Text("Notification Preferences")
-                    }
-                }
-                
-                Section("Account") {
-                    NavigationLink {
-                        Text("Profile information editing would go here")
-                    } label: {
-                        Text("Edit Profile")
-                    }
-                    
-                    NavigationLink {
-                        Text("Change email form would go here")
-                    } label: {
-                        Text("Change Email")
-                    }
-                    
-                    NavigationLink {
-                        Text("Change password form would go here")
-                    } label: {
-                        Text("Change Password")
-                    }
-                }
-                
-                Section("Privacy & Security") {
-                    NavigationLink {
-                        Text("Privacy settings would go here")
-                    } label: {
-                        Text("Privacy Settings")
-                    }
-                    
-                    NavigationLink {
-                        Text("Security settings would go here")
-                    } label: {
-                        Text("Security")
-                    }
-                    
-                    Toggle(isOn: Binding(
-                        get: { settingsManager.settings.locationEnabled },
-                        set: { newValue in
-                            var updatedSettings = settingsManager.settings
-                            updatedSettings.locationEnabled = newValue
-                            settingsManager.settings = updatedSettings
-                        }
-                    )) {
-                        Text("Location Services")
-                    }
-                }
-                
-                Section {
-                    Button(role: .destructive) {
-                        // TODO: Handle account deactivation
-                    } label: {
-                        Text("Deactivate Account")
-                    }
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Done")
-                    }
-                }
-            }
-        }
     }
 }
 
