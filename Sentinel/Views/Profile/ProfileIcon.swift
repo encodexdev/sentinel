@@ -27,7 +27,7 @@ struct ProfileIcon: View {
             }
         }
         .navigationDestination(isPresented: $showingProfileView) {
-            ProfileFullView()
+            ProfileView()
                 .environmentObject(SettingsManager())
         }
     }
