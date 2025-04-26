@@ -53,10 +53,7 @@ final class ChatViewModel: ObservableObject {
     
     func sendEmergencyMessage(level: String) {
         isEmergencyFlow = true
-        
-        // Create emergency-typed message
-        let emergencyMsg = ChatMessage(emergencyLevel: level)
-        
+    
         items.append(.emergency(level: level))
         
         // Simulate emergency response (faster than normal)
@@ -81,29 +78,37 @@ final class ChatViewModel: ObservableObject {
         selectedItems = items
         
         Task {
-            var newImages: [UIImage] = []
+            // Create a local variable to collect images
+            let loadedImages = await loadImages(from: items)
             
-            for item in items {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    newImages.append(image)
-                }
-            }
-            
+            // Move to main actor for UI updates with the final images array
             await MainActor.run {
-                selectedImages = newImages
-                isLoadingImages = false
+                self.selectedImages = loadedImages
+                self.isLoadingImages = false
                 
                 // Create image message if images were loaded
-                if !newImages.isEmpty {
-                    let msg = ChatMessage(imageUploadCount: newImages.count)
-                    self.items.append(.image(count: newImages.count))
+                if !loadedImages.isEmpty {
+                    let _ = ChatMessage(imageUploadCount: loadedImages.count)
+                    self.items.append(.image(count: loadedImages.count))
                     
                     // Log image upload event
-                    self.logAnalyticsEvent("image_uploaded", details: ["count": "\(newImages.count)"])
+                    self.logAnalyticsEvent("image_uploaded", details: ["count": "\(loadedImages.count)"])
                 }
             }
         }
+    }
+    
+    private func loadImages(from items: [PhotosPickerItem]) async -> [UIImage] {
+        var images: [UIImage] = []
+        
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        
+        return images
     }
     
     func shouldShowChips(after item: ChatItem) -> Bool {

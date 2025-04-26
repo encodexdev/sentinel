@@ -61,7 +61,7 @@ struct ChatInputBar: View {
                         .font(.title2)
                         .foregroundColor(Color("SecondaryText"))
                 }
-                .onChange(of: vm.selectedItems) { _ in
+                .onChange(of: vm.selectedItems) {
                     vm.processImageSelection(items: vm.selectedItems)
                 }
                 
