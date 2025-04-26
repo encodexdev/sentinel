@@ -102,7 +102,6 @@ struct HomeView: View {
         }
         .padding(.vertical, 24)
       }
-      // Global background handled by SentinelApp
       .navigationTitle("Home")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -120,3 +119,4 @@ struct HomeView: View {
     }
   }
 }
+
