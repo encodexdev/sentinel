@@ -5,7 +5,7 @@ import SwiftUI
 
 struct HomeView: View {
   // MARK: - Properties
-  
+
   @StateObject private var viewModel = HomeViewModel()
   @State private var position = MapCameraPosition.region(
     MKCoordinateRegion(
@@ -15,13 +15,13 @@ struct HomeView: View {
   )
 
   // MARK: - Computed Properties
-  
+
   /// Extract first name from TestData.user
   private var firstName: String {
     let parts = TestData.user.fullName.split(separator: " ")
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
-  
+
   /// Map style configuration
   private var mapStyleConfig: MapStyle {
     .standard(
@@ -31,9 +31,9 @@ struct HomeView: View {
       showsTraffic: false
     )
   }
-  
+
   // MARK: - Body
-  
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -67,16 +67,22 @@ struct HomeView: View {
           // MARK: Map Overview Section
           SectionCard(title: "Personnel Map") {
             ZStack {
+              // Map View
               Map(position: $position) {
                 UserAnnotation()
               }
               .mapStyle(mapStyleConfig)
               .frame(height: 180)
               .cornerRadius(12)
-              .contentShape(Rectangle())
-              .onTapGesture {
-                viewModel.openMapView()
-              }
+              .allowsHitTesting(false) // Disable direct interaction with map
+              
+              // Transparent overlay that handles tap for the entire area
+              Color.clear
+                .frame(height: 180)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                  viewModel.openMapView()
+                }
 
               // Open Map Button
               Button {
@@ -95,7 +101,7 @@ struct HomeView: View {
             }
           }
           .padding(.horizontal, 16)
-          
+
           // MARK: My Incidents Section
           SectionCard(
             title: "My Incidents",
@@ -105,23 +111,32 @@ struct HomeView: View {
             }
           ) {
             VStack(spacing: 8) {
-              ForEach(viewModel.myIncidents) { incident in
+              ForEach(Array(viewModel.myIncidents.prefix(2))) { incident in
                 IncidentCard(incident: incident) {
                   viewModel.openIncidentsView()
                 }
               }
+              
             }
           }
           .padding(.horizontal, 16)
 
-          // MARK: Team Incidents Section
-          SectionCard(title: "Team Incidents") {
+          // MARK: Location Incidents Section
+          SectionCard(
+            title: "Location Incidents",
+            actionTitle: "View all",
+            action: {
+              viewModel.openIncidentsView()
+            }
+          ) {
             VStack(spacing: 8) {
-              ForEach(viewModel.teamIncidents) { incident in
+              ForEach(Array(viewModel.locationIncidents.prefix(2))) { incident in
                 IncidentCard(incident: incident) {
                   viewModel.openIncidentsView()
                 }
               }
+              
+              
             }
           }
           .padding(.horizontal, 16)
@@ -135,7 +150,7 @@ struct HomeView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           ProfileIcon(user: TestData.user)
-            .padding(.bottom, 8) 
+            .padding(.bottom, 8)
         }
       }
     }

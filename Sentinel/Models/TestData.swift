@@ -9,7 +9,7 @@ enum TestData {
     fullName: "Marcus Brooks",
     role: "Security Officer",
     avatarURL: nil,
-    avatarImageName: "ProfileImage", // Use local image asset
+    avatarImageName: "ProfileImage",  // Use local image asset
     email: "marcus.brooks@gmail.com",
     phoneNumber: "(555) 123-4567",
     startDate: "08/15/2023",
@@ -39,19 +39,58 @@ enum TestData {
       time: Date().addingTimeInterval(-7200),
       status: .inProgress
     ),
+    Incident(
+      id: "3",
+      title: "Unauthorized Access",
+      description: "Attempted access to server room without credentials",
+      location: "IT Department",
+      time: Date().addingTimeInterval(-14400),
+      status: .open
+    ),
+    Incident(
+      id: "4",
+      title: "Fire Alarm Triggered",
+      description: "Smoke detector activated in kitchen area",
+      location: "Employee Lounge",
+      time: Date().addingTimeInterval(-21600),
+      status: .resolved
+    )
   ]
 
-  static let teamIncidents =
-    incidents + [
-      Incident(
-        id: "3",
-        title: "Medical Emergency",
-        description: "Visitor fainted in conference room",
-        location: "Conference Room B",
-        time: Date().addingTimeInterval(-10800),
-        status: .resolved
-      )
-    ]
+  static let locationIncidents: [Incident] = [
+    Incident(
+      id: "5",
+      title: "Medical Emergency",
+      description: "Visitor fainted in conference room",
+      location: "Conference Room B",
+      time: Date().addingTimeInterval(-10800),
+      status: .resolved
+    ),
+    Incident(
+      id: "6",
+      title: "Tailgating Reported",
+      description: "Unknown person followed employee through security door",
+      location: "South Entrance",
+      time: Date().addingTimeInterval(-5400),
+      status: .open
+    ),
+    Incident(
+      id: "7",
+      title: "Suspicious Package",
+      description: "Unattended backpack in reception area",
+      location: "Main Reception",
+      time: Date().addingTimeInterval(-12600),
+      status: .inProgress
+    ),
+    Incident(
+      id: "8",
+      title: "Elevator Malfunction",
+      description: "Elevator 2 stuck between floors with passengers",
+      location: "Building Core",
+      time: Date().addingTimeInterval(-18000),
+      status: .resolved
+    )
+  ]
 
   static let messages: [ChatMessage] = [
     ChatMessage(

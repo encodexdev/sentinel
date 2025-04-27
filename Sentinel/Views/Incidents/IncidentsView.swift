@@ -7,92 +7,11 @@ struct IncidentsView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-        // Filter picker
-        Picker("Filter", selection: $selectedFilter) {
-          ForEach(IncidentFilter.allCases, id: \.self) { filter in
-            Text(filter.rawValue)
-          }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.top, 8)
-
-        ScrollView {
-          VStack(spacing: 16) {
-            // My Incidents Section
-            if selectedFilter == .mine || selectedFilter == .all {
-              SectionCard(title: "My Incidents") {
-                VStack(spacing: 8) {
-                  ForEach(viewModel.myIncidents) { incident in
-                    IncidentCard(incident: incident)
-                  }
-
-                  if viewModel.myIncidents.isEmpty {
-                    Text("No incidents assigned to you")
-                      .font(.subheadline)
-                      .foregroundColor(Color("SecondaryText"))
-                      .padding()
-                  }
-                }
-              }
-              .padding(.horizontal, 16)
-            }
-
-            // Team Incidents Section
-            if selectedFilter == .team || selectedFilter == .all {
-              SectionCard(title: "Team Incidents") {
-                VStack(spacing: 8) {
-                  ForEach(viewModel.teamIncidents) { incident in
-                    IncidentCard(incident: incident)
-                  }
-
-                  if viewModel.teamIncidents.isEmpty {
-                    Text("No team incidents reported")
-                      .font(.subheadline)
-                      .foregroundColor(Color("SecondaryText"))
-                      .padding()
-                  }
-                }
-              }
-              .padding(.horizontal, 16)
-            }
-
-            // Status-based filtering
-            if selectedFilter == .open || selectedFilter == .inProgress
-              || selectedFilter == .resolved
-            {
-              let filteredIncidents = (viewModel.myIncidents + viewModel.teamIncidents).filter {
-                switch selectedFilter {
-                case .open: return $0.status == .open
-                case .inProgress: return $0.status == .inProgress
-                case .resolved: return $0.status == .resolved
-                default: return true
-                }
-              }
-
-              SectionCard(title: "\(selectedFilter.rawValue) Incidents") {
-                VStack(spacing: 8) {
-                  ForEach(filteredIncidents) { incident in
-                    IncidentCard(incident: incident)
-                  }
-
-                  if filteredIncidents.isEmpty {
-                    Text("No \(selectedFilter.rawValue.lowercased()) incidents")
-                      .font(.subheadline)
-                      .foregroundColor(Color("SecondaryText"))
-                      .padding()
-                  }
-                }
-              }
-              .padding(.horizontal, 16)
-            }
-
-            Spacer(minLength: 20)
-          }
-          .padding(.vertical, 16)
-        }
+        filterPicker
+        incidentList
       }
       .navigationTitle("Incidents")
+      .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button {
@@ -104,17 +23,235 @@ struct IncidentsView: View {
       }
     }
   }
+  
+  // MARK: - Component Views
+  
+  /// Filter picker at the top of the view
+  private var filterPicker: some View {
+      // Removed Resolved for space
+      Picker("Filter", selection: $selectedFilter) {
+        ForEach(
+          IncidentFilter.allCases.filter { $0 != .resolved },
+          id: \.self
+        ) { filter in
+          Text(filter.rawValue)
+        }
+      }
+    .pickerStyle(.segmented)
+    .padding(.horizontal)
+    .padding(.top, 8)
+  }
+  
+  /// Main scrollable content area showing filtered incidents
+  private var incidentList: some View {
+    ScrollView {
+      VStack(spacing: 16) {
+        // My Incidents Section
+        myIncidentsSection
+        
+        // Location Incidents Section
+        locationIncidentsSection
+        
+        // Status-based filtering
+        statusFilteredIncidentsSection
+        
+        Spacer(minLength: 20)
+      }
+      .padding(.vertical, 16)
+    }
+  }
+  
+  /// Shows the user's assigned incidents
+  @ViewBuilder
+  private var myIncidentsSection: some View {
+    if selectedFilter == .mine || selectedFilter == .all {
+      SectionCard(title: "My Incidents") {
+        incidentsList(incidents: viewModel.myIncidents, emptyMessage: "No incidents assigned to you")
+      }
+      .padding(.horizontal, 16)
+    }
+  }
+  
+  /// Shows incidents in the user's location
+  @ViewBuilder
+  private var locationIncidentsSection: some View {
+    if selectedFilter == .location || selectedFilter == .all {
+      SectionCard(title: "Location Incidents") {
+        incidentsList(incidents: viewModel.locationIncidents, emptyMessage: "No location incidents reported")
+      }
+      .padding(.horizontal, 16)
+    }
+  }
+  
+  /// Shows incidents filtered by status (open, in progress, resolved)
+  @ViewBuilder
+  private var statusFilteredIncidentsSection: some View {
+    if selectedFilter == .open || selectedFilter == .inProgress || selectedFilter == .resolved {
+      let filteredIncidents = getFilteredIncidentsByStatus()
+      
+      SectionCard(title: "\(selectedFilter.rawValue) Incidents") {
+        incidentsList(
+          incidents: filteredIncidents,
+          emptyMessage: "No \(selectedFilter.rawValue.lowercased()) incidents"
+        )
+      }
+      .padding(.horizontal, 16)
+    }
+  }
+  
+  /// Reusable list of incidents with empty state handling
+  private func incidentsList(incidents: [Incident], emptyMessage: String) -> some View {
+    VStack(spacing: 8) {
+      if incidents.isEmpty {
+        Text(emptyMessage)
+          .font(.subheadline)
+          .foregroundColor(Color("SecondaryText"))
+          .padding()
+      } else {
+        ForEach(incidents) { incident in
+          IncidentCard(incident: incident)
+        }
+      }
+    }
+  }
+  
+  /// Helper method to filter incidents by status
+  private func getFilteredIncidentsByStatus() -> [Incident] {
+    return (viewModel.myIncidents + viewModel.locationIncidents).filter {
+      switch selectedFilter {
+      case .open: return $0.status == .open
+      case .inProgress: return $0.status == .inProgress
+      case .resolved: return $0.status == .resolved
+      default: return true
+      }
+    }
+  }
 }
 
 enum IncidentFilter: String, CaseIterable {
   case all = "All"
   case mine = "Mine"
-  case team = "Team"
+  case location = "Location"
   case open = "Open"
-  case inProgress = "In Progress"
+  case inProgress = "Pending"
   case resolved = "Resolved"
 }
 
-#Preview {
+// MARK: - Previews
+
+#Preview("Incidents View") {
   IncidentsView()
+}
+
+// Specialized previews for each filter type
+struct IncidentsFilters_Previews: PreviewProvider {
+  static var previews: some View {
+    ForEach(IncidentFilter.allCases, id: \.self) { filter in
+      NavigationStack {
+        IncidentsFilterPreview(filter: filter)
+      }
+      .previewDisplayName("\(filter.rawValue) Filter")
+    }
+  }
+}
+
+// Helper view for previewing different filter states
+struct IncidentsFilterPreview: View {
+  let filter: IncidentFilter
+  @StateObject private var viewModel = HomeViewModel()
+  
+  var body: some View {
+    VStack(spacing: 0) {
+      // Filter picker (locked to specific filter for preview)
+      Picker("Filter", selection: .constant(filter)) {
+        ForEach(IncidentFilter.allCases, id: \.self) { filter in
+          Text(filter.rawValue)
+        }
+      }
+      .pickerStyle(.segmented)
+      .padding(.horizontal)
+      .padding(.top, 8)
+      
+      // Main content
+      ScrollView {
+        VStack(spacing: 16) {
+          filterSpecificContent
+          Spacer(minLength: 20)
+        }
+        .padding(.vertical, 16)
+      }
+    }
+    .navigationTitle("Incidents")
+  }
+  
+  // Show only the content relevant to the selected filter
+  @ViewBuilder
+  private var filterSpecificContent: some View {
+    switch filter {
+    case .all:
+      allContent
+    case .mine:
+      myIncidentsContent
+    case .location:
+      locationIncidentsContent
+    case .open, .inProgress, .resolved:
+      statusFilteredContent
+    }
+  }
+  
+  private var allContent: some View {
+    VStack(spacing: 16) {
+      myIncidentsContent
+      locationIncidentsContent
+    }
+  }
+  
+  private var myIncidentsContent: some View {
+    SectionCard(title: "My Incidents") {
+      incidentsList(incidents: viewModel.myIncidents, emptyMessage: "No incidents assigned to you")
+    }
+    .padding(.horizontal, 16)
+  }
+  
+  private var locationIncidentsContent: some View {
+    SectionCard(title: "Location Incidents") {
+      incidentsList(incidents: viewModel.locationIncidents, emptyMessage: "No location incidents reported")
+    }
+    .padding(.horizontal, 16)
+  }
+  
+  private var statusFilteredContent: some View {
+    let filteredIncidents = (viewModel.myIncidents + viewModel.locationIncidents).filter {
+      switch filter {
+      case .open: return $0.status == .open
+      case .inProgress: return $0.status == .inProgress
+      case .resolved: return $0.status == .resolved
+      default: return false
+      }
+    }
+    
+    return SectionCard(title: "\(filter.rawValue) Incidents") {
+      incidentsList(
+        incidents: filteredIncidents,
+        emptyMessage: "No \(filter.rawValue.lowercased()) incidents"
+      )
+    }
+    .padding(.horizontal, 16)
+  }
+  
+  /// Reusable list of incidents with empty state handling
+  private func incidentsList(incidents: [Incident], emptyMessage: String) -> some View {
+    VStack(spacing: 8) {
+      if incidents.isEmpty {
+        Text(emptyMessage)
+          .font(.subheadline)
+          .foregroundColor(Color("SecondaryText"))
+          .padding()
+      } else {
+        ForEach(incidents) { incident in
+          IncidentCard(incident: incident)
+        }
+      }
+    }
+  }
 }
