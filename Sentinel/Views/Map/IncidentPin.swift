@@ -2,70 +2,78 @@ import LucideIcons
 import SwiftUI
 
 struct IncidentPin: View {
-  private let iconSize: CGFloat = 24
-  let status: IncidentStatus
-  let dropped: Bool
+    private let iconSize: CGFloat = 24
+    let status: IncidentStatus
+    let dropped: Bool
 
-  @State private var pulsing = false
+    // MARK: — Animation state
+    @State private var pulsing = false
+    @State private var yOffset: CGFloat = -20
+    @State private var pinOpacity: Double = 0
 
-  // Initial vertical offset before drop
-  @State private var yOffset: CGFloat = -20
-
-  var iconColor: Color {
-    switch status {
-    case .resolved: return .gray
-    case .inProgress: return .green
-    case .open: return .orange
+    var iconColor: Color {
+        switch status {
+        case .resolved:   return .gray
+        case .inProgress: return .green
+        case .open:       return .orange
+        }
     }
-  }
 
-  var body: some View {
-    ZStack {
-      // glowing halo
-      Circle()
-        .fill(iconColor)
-        .frame(width: 36, height: 36)
-        .blur(radius: 12)
-        .opacity(0.4)
-        .scaleEffect(pulsing ? 1.1 : 0.8)
+    var body: some View {
+        ZStack {
+            // glowing halo
+            Circle()
+                .fill(iconColor)
+                .frame(width: 36, height: 36)
+                .blur(radius: 12)
+                .opacity(0.4)
+                .scaleEffect(pulsing ? 1.1 : 0.8)
 
-      // white inner circle
-      Circle()
-        .fill(Color.white)
-        .frame(width: 32, height: 32)
+            // white inner circle
+            Circle()
+                .fill(Color.white)
+                .frame(width: 32, height: 32)
 
-      // person icon using the new LucideIcon component
-      LucideIcon.shieldUser(
-        size: iconSize,
-        color: iconColor
-      )
-
+            // icon
+            LucideIcon.shieldUser(
+                size: iconSize,
+                color: iconColor
+            )
+        }
+        .offset(y: yOffset)
+        .opacity(pinOpacity)
+        .onAppear {
+            // start the pulsing glow
+            withAnimation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                pulsing.toggle()
+            }
+            // if already dropped, trigger the drop+fade
+            if dropped {
+                withAnimation(.easeOut(duration: 1.2)) {
+                    yOffset = 0
+                    pinOpacity = 1
+                }
+            }
+        }
+        .onChange(of: dropped) {
+            // animate drop & fade-in when `dropped` flips to true
+            withAnimation(.easeOut(duration: 1.0)) {
+                yOffset = 0
+                pinOpacity = 1
+            }
+        }
     }
-    .offset(y: yOffset)
-    .opacity(dropped ? 1 : 0)
-    .scaleEffect(dropped ? 1 : 0, anchor: .center)
-    .onAppear {
-      // start pulsing glow
-      withAnimation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-        pulsing.toggle()
-      }
-      // animate drop
-      withAnimation(.easeOut(duration: 0.6)) {
-        yOffset = 0
-      }
-    }
-  }
 }
 
 struct IncidentPin_Previews: PreviewProvider {
-  static var previews: some View {
-    VStack {
-      IncidentPin(status: .inProgress, dropped: true)
-      IncidentPin(status: .resolved, dropped: true)
-      IncidentPin(status: .open, dropped: true)
+    static var previews: some View {
+        VStack(spacing: 20) {
+            IncidentPin(status: .inProgress, dropped: true)
+            IncidentPin(status: .resolved,   dropped: true)
+            IncidentPin(status: .open,       dropped: true)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.2))
+        .previewLayout(.sizeThatFits)
     }
-    .previewLayout(.sizeThatFits)
-    .padding()
-    .background(Color.gray.opacity(0.2))
-  }
 }

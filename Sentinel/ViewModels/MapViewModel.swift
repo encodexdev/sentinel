@@ -19,7 +19,10 @@ class MapViewModel: ObservableObject {
 
   /// Show the incident acceptance toast
   @Published var showAcceptToast = false
-
+  
+  /// Flag to track if we've already shown the incident toast this session
+  @Published var hasShownIncidentToast: Bool = false
+  
   /// Current camera heading (rotation)
   @Published var cameraHeading: Double = 0
 
@@ -216,7 +219,7 @@ class MapViewModel: ObservableObject {
     incidentDistances.sort { $0.distance < $1.distance }
 
     // Compute normalized delays
-    let maxDelay: Double = 3.0  // 3 seconds total animation time
+    let maxDelay: Double = 2.0  // 2 seconds total animation time
     let totalIncidents = Double(incidentDistances.count)
 
     var delays: [String: Double] = [:]
@@ -375,13 +378,16 @@ class MapViewModel: ObservableObject {
         }
       }
 
-      // If it's the open incident, schedule showing the toast
-      if incident.status == .open {
+      // If it's the open incident, schedule showing the toast only if we haven't shown it yet
+      if incident.status == .open && !hasShownIncidentToast {
         let toastDelay = delay + 2
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + toastDelay) {
           withAnimation {
             self.selectedIncident = incident
             self.showAcceptToast = true
+            // Mark that we've shown the toast in this session
+            self.hasShownIncidentToast = true
           }
         }
       }
@@ -436,11 +442,6 @@ class MapViewModel: ObservableObject {
     // Animate to the new camera position
     withAnimation(.easeInOut(duration: 1.5)) {
       position = .camera(camera)
-    }
-
-    // After 2 seconds, transition to the route view
-    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-      self.centerOnRoute()
     }
   }
 }

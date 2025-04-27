@@ -22,10 +22,16 @@ struct NavigationInfo: Equatable {
   }
   
   var formattedDistance: String {
-    let formatter = MeasurementFormatter()
-    formatter.unitOptions = .providedUnit
-    formatter.unitStyle = .medium
-    return formatter.string(from: distance)
+      let kmValue = distance.converted(to: .kilometers)
+      let formatter = MeasurementFormatter()
+      formatter.unitOptions = .providedUnit
+      formatter.unitStyle   = .medium
+
+      // Configure the number of decimals:
+      formatter.numberFormatter.minimumFractionDigits = 2
+      formatter.numberFormatter.maximumFractionDigits = 2
+
+      return formatter.string(from: kmValue)
   }
   
   var formattedETA: String {

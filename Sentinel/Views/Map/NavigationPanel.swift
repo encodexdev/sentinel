@@ -26,79 +26,71 @@ struct NavigationPanel: View {
 
       HStack(spacing: 16) {
         // MARK: Navigation Info
-        VStack(alignment: .leading, spacing: 8) {
-          Text("En route to \(navigationInfo.incident.title)")
-            .font(.headline)
-
-          HStack(spacing: 12) {
-            // ETA icon
-            Image(uiImage: Lucide.clock.withRenderingMode(.alwaysTemplate))
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: 18, height: 18)
-              .foregroundColor(.blue)
-
-            // ETA info
-            VStack(alignment: .leading, spacing: 2) {
-              Text("ETA")
-                .font(.caption2)
-                .foregroundColor(.gray)
-              Text("\(navigationInfo.etaMinutes) min")
-                .font(.system(size: 14, weight: .medium))
-            }
-
-            // Distance icon
-            Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: 18, height: 18)
-              .foregroundColor(.orange)
-
-            // Distance
-            VStack(alignment: .leading, spacing: 2) {
-              Text("Distance")
-                .font(.caption2)
-                .foregroundColor(.gray)
-              Text(navigationInfo.formattedDistance)
-                .font(.system(size: 14, weight: .medium))
-            }
-
-            // Distance icon
-            Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: 18, height: 18)
-              .foregroundColor(.orange)
-            // Reward
-            VStack(alignment: .leading, spacing: 2) {
-              Text("Reward")
-                .font(.caption2)
-                .foregroundColor(.gray)
-              Text("$\(String(format: "%.2f", navigationInfo.fare))")
-                .font(.system(size: 14, weight: .medium))
-            }
+          VStack(alignment: .leading, spacing: 16) {
+              Text("En route to \(navigationInfo.incident.title)")
+                  .font(.headline)
+              
+              HStack(spacing: 16) {
+                  // ETA
+                  HStack(spacing: 4) {
+                      // ETA icon
+                      Image(uiImage: Lucide.clock.withRenderingMode(.alwaysTemplate))
+                          .resizable()
+                          .aspectRatio(contentMode: .fit)
+                          .frame(width: 18, height: 18)
+                          .foregroundColor(.blue)
+                      
+                      // ETA info
+                      VStack(alignment: .leading, spacing: 2) {
+                          Text("ETA")
+                              .font(.caption2)
+                              .foregroundColor(.gray)
+                          Text("\(navigationInfo.etaMinutes) min")
+                              .font(.system(size: 14, weight: .medium))
+                      }
+                  }
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  
+                  // Distance
+                  HStack(spacing: 4) {
+                      // Distance icon
+                      Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
+                          .resizable()
+                          .aspectRatio(contentMode: .fit)
+                          .frame(width: 18, height: 18)
+                          .foregroundColor(.orange)
+                      
+                      // Distance
+                      VStack(alignment: .leading, spacing: 2) {
+                          Text("Distance")
+                              .font(.caption2)
+                              .foregroundColor(.gray)
+                          Text(navigationInfo.formattedDistance)
+                              .font(.system(size: 14, weight: .medium))
+                      }
+                  }
+                  .frame(maxWidth: .infinity)
+                  
+                  // Reward
+                  HStack(spacing: 4) {
+                      Image(uiImage: Lucide.circleDollarSign.withRenderingMode(.alwaysTemplate))
+                          .resizable()
+                          .aspectRatio(contentMode: .fit)
+                          .frame(width: 18, height: 18)
+                          .foregroundColor(.green)
+                      Text("$\(String(format: "%.2f", navigationInfo.fare))")
+                          .font(.system(size: 14, weight: .medium))
+                  }
+                  .frame(maxWidth: .infinity, alignment: .trailing)
+              }
+              .padding(.horizontal, 8)
           }
-
-        }
 
         Spacer()
       }
       .padding(.horizontal, 8)
+        
 
-      // MARK: Progress Indicator
-      VStack(spacing: 4) {
-        HStack {
-          Text("Progress")
-            .font(.caption)
-          Spacer()
-          Text("\(Int(progress * 100))%")
-            .font(.caption)
-        }
-
-        ProgressView(value: progress, total: 1.0)
-          .tint(.blue)
-      }
-      .padding(.horizontal, 8)
 
       // MARK: Cancel Button
       Button(action: onCancel) {
@@ -143,7 +135,6 @@ struct NavigationPanel: View {
         progress: 0.1,
         onCancel: {}
       )
-      .previewDisplayName("Starting Navigation")
 
       // Halfway there
       NavigationPanel(
@@ -151,7 +142,6 @@ struct NavigationPanel: View {
         progress: 0.5,
         onCancel: {}
       )
-      .previewDisplayName("Mid Navigation")
 
       // Almost arrived
       NavigationPanel(
@@ -159,7 +149,6 @@ struct NavigationPanel: View {
         progress: 0.9,
         onCancel: {}
       )
-      .previewDisplayName("Almost Arrived")
     }
     .padding(.vertical, 40)
   }
@@ -178,7 +167,7 @@ private func createSampleNavInfo(minutes: Int = 15) -> NavigationInfo {
   return NavigationInfo(
     incident: sampleIncident,
     etaMinutes: minutes,
-    distance: Measurement(value: 2.4, unit: .kilometers),
+    distance: Measurement(value: 2.482, unit: .kilometers),
     fare: 45.75
   )
 }

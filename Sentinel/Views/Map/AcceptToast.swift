@@ -13,9 +13,18 @@ struct AcceptToast: View {
 
   @State private var sliderValue: Double = 0.0
   @State private var timer: Timer?
+  @State private var toastOpacity: Double = 0
 
   /// Store fare as a state so it remains constant during the toast lifetime
-  @State private var fare: Double = 0.0
+  @State private var fare: Double
+  
+  init(incident: IncidentAnnotation, onAccept: @escaping () -> Void, onTimeout: @escaping () -> Void) {
+    self.incident = incident
+    self.onAccept = onAccept
+    self.onTimeout = onTimeout
+    // Pre-calculate the fare so it's included in the initial animation
+    _fare = State(initialValue: Double.random(in: 30...80))
+  }
 
   // MARK: - Body
 
@@ -71,8 +80,10 @@ struct AcceptToast: View {
     .shadow(radius: 10)
     .padding(.horizontal, 16)
     .onAppear {
-      // Set the fare once when toast appears
-      fare = Double.random(in: 30...80)
+      // Animate the toast in with a smooth fade
+      withAnimation(.easeOut(duration: 0.8)) {
+        toastOpacity = 1.0
+      }
       startTimer()
     }
   }
