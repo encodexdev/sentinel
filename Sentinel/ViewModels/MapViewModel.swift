@@ -80,14 +80,17 @@ class MapViewModel: ObservableObject {
 
     // Temporary array to hold incidents
     var tempIncidents: [IncidentAnnotation] = []
+      
+    let incidentTitles = ["Shoplifting", "Active Fight", "Property Damage"]
 
     // Generate random incidents around user
     tempIncidents = statuses.map { status in
       let randLat = userCoord.latitude + Double.random(in: -0.02...0.02)
       let randLon = userCoord.longitude + Double.random(in: -0.02...0.02)
+      let randomIndex = Int.random(in: 0..<incidentTitles.count)
       return IncidentAnnotation(
         id: UUID().uuidString,
-        title: "",
+        title: incidentTitles[randomIndex],
         coordinate: CLLocationCoordinate2D(latitude: randLat, longitude: randLon),
         status: status
       )
