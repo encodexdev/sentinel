@@ -1,0 +1,43 @@
+{
+  "configurations" : [
+    {
+      "id" : "8B9E4772-BB27-405D-9D1D-2391B39DD17F",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Sentinel.xcodeproj",
+      "identifier" : "988B75782DB7207400DD139B",
+      "name" : "Sentinel"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "selectedTags" : {
+        "includeXCTests" : true
+      },
+      "target" : {
+        "containerPath" : "container:Sentinel.xcodeproj",
+        "identifier" : "988B75882DB7207600DD139B",
+        "name" : "SentinelTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "selectedTags" : {
+        "includeXCTests" : true
+      },
+      "target" : {
+        "containerPath" : "container:Sentinel.xcodeproj",
+        "identifier" : "988B75922DB7207600DD139B",
+        "name" : "SentinelUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

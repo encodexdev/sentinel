@@ -26,6 +26,49 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   // Track report completion state
   @Published var isReportReadyForSubmission = false
+  
+  // Processing state
+  @Published var isProcessingAIResponse = false
+  
+  // MARK: - OpenAI Integration
+  
+  /// Current streaming response buffer
+  private var responseBuffer = ""
+  
+  /// Current function call data
+  private var currentFunctionName = ""
+  private var currentFunctionArgs = ""
+  
+  /// Get the appropriate system prompt based on current context
+  private var currentSystemPrompt: String {
+      if isEmergencyFlow {
+          // For emergency mode, include the level in the prompt
+          let level = extractEmergencyLevel()
+          return ChatPrompts.emergency(level: level)
+      } else {
+          return ChatPrompts.standard
+      }
+  }
+  
+  /// Get the appropriate function definitions based on current context
+  private var currentFunctionDefinitions: [[String: Any]] {
+      if isEmergencyFlow {
+          return ChatPrompts.emergencyFunctionDefinitions
+      } else {
+          return ChatPrompts.standardFunctionDefinitions
+      }
+  }
+  
+  /// Extract the emergency level from the conversation
+  private func extractEmergencyLevel() -> String {
+      // Look for emergency item
+      for item in items {
+          if case .emergency(let level, _) = item {
+              return level
+          }
+      }
+      return "Security" // Default level
+  }
 
   func selectIncidentType(_ type: String) {
     // Check if this is an emergency selection
@@ -54,7 +97,55 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     }
   }
 
+  /// Send a message using the OpenAI integration
   func sendMessage() {
+    // Use the AI-powered version
+    sendMessageWithAI()
+  }
+  
+  /// Updated sendMessage to use OpenAI
+  func sendMessageWithAI() {
+    let trimmedText = inputText.trimmingCharacters(in: .whitespaces)
+    let hasText = !trimmedText.isEmpty
+    let hasImages = !selectedImages.isEmpty
+    
+    // Return if nothing to send
+    guard hasText || hasImages else { return }
+    
+    // If there's text, add user message
+    if hasText {
+        let userMsg = ChatMessage(
+            id: UUID().uuidString, 
+            role: .user, 
+            content: inputText, 
+            timestamp: Date(), 
+            messageType: .chat
+        )
+        items.append(.text(userMsg))
+    }
+    
+    // If there are images, add them
+    if hasImages {
+        // Create a copy of the current images
+        let imagesToSend = selectedImages
+        
+        // Add the image message with caption
+        items.append(.image(images: imagesToSend, caption: trimmedText))
+        
+        // Clear the selected images
+        selectedImages = []
+        selectedItems = []
+    }
+    
+    // Clear the input text
+    inputText = ""
+    
+    // Get AI response
+    getAIResponse()
+  }
+  
+  /// Legacy message sending implementation (kept for reference/fallback)
+  func sendMessageLegacy() {
     let trimmedText = inputText.trimmingCharacters(in: .whitespaces)
     let hasText = !trimmedText.isEmpty
     let hasImages = !selectedImages.isEmpty
@@ -151,7 +242,22 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     }
   }
 
+  /// Initiate emergency mode with AI responses
   func sendEmergencyMessage(level: String) {
+    isEmergencyFlow = true
+
+    // Add emergency notification to chat
+    items.append(.emergency(level: level))
+
+    // Log emergency event
+    logAnalyticsEvent("emergency_requested", details: ["level": level])
+    
+    // Get AI response for the emergency
+    getAIResponse()
+  }
+  
+  /// Legacy emergency message implementation (kept for reference/fallback)
+  func sendEmergencyMessageLegacy(level: String) {
     isEmergencyFlow = true
 
     // Add emergency notification
@@ -408,9 +514,129 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   func submitReport() -> Bool {
     // First, create a report if one doesn't already exist
     if !items.contains(where: { if case .report = $0 { return true } else { return false } }) {
-      createReportFromChat()
+      // Use AI to generate the report from conversation
+      generateReportFromChat()
+      
+      // Wait a moment to let report appear before showing success message
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        self?.finalizeReportSubmission()
+      }
+    } else {
+      // Report already exists, just finalize submission
+      finalizeReportSubmission()
     }
     
+    // Always return true to indicate successful handling
+    return true
+  }
+  
+  // MARK: - OpenAI Message History and Response
+  
+  /// Build message history for context
+  private func buildMessageHistory() -> [ChatMessage] {
+      // Convert ChatItems to ChatMessages for API consumption
+      var history: [ChatMessage] = []
+      
+      for item in items {
+          switch item {
+          case .text(let message):
+              history.append(message)
+          case .image(_, _, let caption):
+              if !caption.isEmpty {
+                  // Add caption as a user message
+                  let captionMsg = ChatMessage(
+                      id: UUID().uuidString,
+                      role: .user,
+                      content: "Image caption: \(caption)",
+                      timestamp: Date(),
+                      messageType: .chat
+                  )
+                  history.append(captionMsg)
+              }
+          case .emergency(let level, _):
+              // Convert emergency notification to a system message
+              let emergencyMsg = ChatMessage(
+                  id: UUID().uuidString,
+                  role: .assistant,
+                  content: "EMERGENCY: \(level.uppercased()) assistance requested",
+                  timestamp: Date(),
+                  messageType: .emergency
+              )
+              history.append(emergencyMsg)
+          case .report:
+              // Skip report items in the history
+              continue
+          }
+      }
+      
+      return history
+  }
+  
+  /// Get AI response using the OpenAI service
+  func getAIResponse() {
+      // Don't proceed if we're already processing
+      guard !isProcessingAIResponse else { return }
+      
+      // Set processing flag
+      isProcessingAIResponse = true
+      
+      // Build message history
+      let messageHistory = buildMessageHistory()
+      
+      // Get images to include (if any)
+      let imagesToInclude = selectedImages
+      
+      // Send request to OpenAI
+      do {
+          // Create OpenAI service instance
+          let openAIService = try OpenAIService()
+          
+          // Use streaming for better UX
+          openAIService.sendStreamingChatCompletion(
+              messages: messageHistory,
+              systemPrompt: currentSystemPrompt,
+              functions: currentFunctionDefinitions,
+              images: imagesToInclude,
+              temperature: 0.7
+          ) { [weak self] result in
+              guard let self = self else { return }
+              
+              // Handle streaming results
+              switch result {
+              case .token(let text):
+                  // Handle streamed tokens
+                  self.handleStreamedToken(text)
+                  
+              case .functionCall(let name, let args):
+                  // Handle function calls
+                  self.handleFunctionCall(name, arguments: args)
+                  
+              case .error(let error):
+                  // Handle errors
+                  print("OpenAI error: \(error)")
+                  DispatchQueue.main.async {
+                      self.isProcessingAIResponse = false
+                      self.addFallbackResponse()
+                  }
+                  
+              case .done:
+                  // Finalize response
+                  DispatchQueue.main.async {
+                      self.finalizeAIResponse()
+                      self.isProcessingAIResponse = false
+                  }
+              }
+          }
+      } catch {
+          // Handle service initialization error
+          print("OpenAI service error: \(error)")
+          isProcessingAIResponse = false
+          addFallbackResponse()
+      }
+  }
+  
+  /// Finalize report submission with success messages and navigation
+  private func finalizeReportSubmission() {
     // Find the latest report in the conversation
     var incidentReport: ReportData? = nil
     for item in items.reversed() {
@@ -430,7 +656,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     )
     items.append(.text(successMessage))
       
-    // Second message - Request details (short delay)
+    // Second message - Navigation info
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
       guard let self = self else { return }
       let secondResponse = ChatMessage(
@@ -464,10 +690,6 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       self?.restartChat()
       self?.openIncidentsTab()
     }
-
-    // In a real app, we would save this report to a database
-    // and create an incident record. For now, we'll simulate success.
-    return true
   }
 
   /// Restarts the chat to its initial state
@@ -600,5 +822,251 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   // Analytics logging
   private func logAnalyticsEvent(_ event: String, details: [String: String] = [:]) {
     print("[ChatViewModel]: \(event) - \(details)")
+  }
+  
+  // MARK: - Response Handling
+  
+  /// Handle streamed token from OpenAI
+  private func handleStreamedToken(_ token: String) {
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          // If this is the first token, create a new message
+          if self.responseBuffer.isEmpty {
+              // Create new assistant message
+              let newMessage = ChatMessage(
+                  id: UUID().uuidString,
+                  role: .assistant,
+                  content: token,
+                  timestamp: Date(),
+                  messageType: self.isEmergencyFlow ? .emergency : .chat
+              )
+              self.items.append(.text(newMessage))
+          } else {
+              // Update the last message if it's from the assistant
+              if case .text(let lastMsg) = self.items.last,
+                 lastMsg.role == .assistant {
+                  // Create a new message with updated content
+                  let updatedMsg = ChatMessage(
+                      id: lastMsg.id,
+                      role: lastMsg.role,
+                      content: lastMsg.content + token,
+                      timestamp: lastMsg.timestamp,
+                      messageType: lastMsg.messageType
+                  )
+                  
+                  // Replace the last item
+                  self.items[self.items.count - 1] = .text(updatedMsg)
+              }
+          }
+          
+          // Add to buffer
+          self.responseBuffer += token
+      }
+  }
+  
+  /// Handle function call from OpenAI
+  private func handleFunctionCall(_ name: String, arguments: [String: Any]) {
+      // Special handling for argument chunks in streaming
+      if name == "__args_chunk__", let chunk = arguments["chunk"] as? String {
+          // Accumulate function arguments
+          currentFunctionArgs += chunk
+          return
+      }
+      
+      // Initialize function name if this is first call
+      if currentFunctionName.isEmpty {
+          currentFunctionName = name
+      }
+      
+      // Process complete function calls
+      if !currentFunctionName.isEmpty && !currentFunctionArgs.isEmpty {
+          // Try to parse accumulated arguments as JSON
+          if let argsData = currentFunctionArgs.data(using: .utf8),
+             let args = try? JSONSerialization.jsonObject(with: argsData) as? [String: Any] {
+              // Process with complete arguments
+              processFunctionCall(name: currentFunctionName, arguments: args)
+          }
+      }
+  }
+  
+  /// Process completed function call
+  private func processFunctionCall(name: String, arguments: [String: Any]) {
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          switch name {
+          case "generateReport":
+              self.handleGenerateReportFunction(arguments)
+              
+          case "setReportReadiness":
+              if let isReady = arguments["isReady"] as? Bool {
+                  self.isReportReadyForSubmission = isReady
+              }
+              
+          case "suggestEmergency":
+              if let suggest = arguments["suggest"] as? Bool,
+                 let level = arguments["level"] as? String,
+                 suggest {
+                  self.showEmergencyOptions = true
+              }
+              
+          default:
+              print("Unknown function: \(name)")
+          }
+      }
+  }
+  
+  /// Handle generateReport function call
+  private func handleGenerateReportFunction(_ arguments: [String: Any]) {
+      // Extract required fields
+      guard let title = arguments["title"] as? String,
+            let description = arguments["description"] as? String,
+            let statusStr = arguments["status"] as? String
+      else { return }
+      
+      // Extract optional fields with defaults
+      let location = arguments["location"] as? String ?? "Unknown Location"
+      
+      // Map status string to enum
+      let status: IncidentStatus
+      switch statusStr.lowercased() {
+      case "open": status = .open
+      case "inprogress", "in_progress", "in progress": status = .inProgress
+      case "resolved": status = .resolved
+      default: status = isEmergencyFlow ? .inProgress : .open
+      }
+      
+      // Collect user comments
+      let userComments = items.compactMap { item -> String? in
+          if case .text(let msg) = item, msg.role == .user {
+              return msg.content
+          }
+          return nil
+      }
+      
+      // Collect images
+      let imageMessages = items.compactMap { item -> [UIImage]? in
+          if case .image(let images, _, _) = item {
+              return images
+          }
+          return nil
+      }.flatMap { $0 }
+      
+      // Create report
+      let report = ReportData(
+          title: title,
+          description: description,
+          location: location,
+          timestamp: Date(),
+          status: status,
+          userComments: userComments,
+          images: imageMessages
+      )
+      
+      // Add intro message
+      let introMessage = ChatMessage(
+          id: UUID().uuidString,
+          role: .assistant,
+          content: "I've compiled your report:",
+          timestamp: Date(),
+          messageType: .chat
+      )
+      self.items.append(.text(introMessage))
+      
+      // Add report to chat
+      self.items.append(.report(report))
+  }
+  
+  /// Finalize AI response after streaming is complete
+  private func finalizeAIResponse() {
+      // Reset buffers
+      responseBuffer = ""
+      
+      // Process any pending function calls
+      if !currentFunctionName.isEmpty && !currentFunctionArgs.isEmpty {
+          if let argsData = currentFunctionArgs.data(using: .utf8),
+             let args = try? JSONSerialization.jsonObject(with: argsData) as? [String: Any] {
+              processFunctionCall(name: currentFunctionName, arguments: args)
+          }
+      }
+      
+      // Reset function call data
+      currentFunctionName = ""
+      currentFunctionArgs = ""
+  }
+  
+  /// Add fallback response in case of errors
+  private func addFallbackResponse() {
+      let fallbackMessage = ChatMessage(
+          id: UUID().uuidString,
+          role: .assistant,
+          content: "I apologize, but I couldn't process your request. Please try again.",
+          timestamp: Date(),
+          messageType: .chat
+      )
+      items.append(.text(fallbackMessage))
+  }
+  
+  /// Generate a report from the conversation
+  func generateReportFromChat() {
+      // Don't proceed if already processing
+      guard !isProcessingAIResponse else { return }
+      
+      // Set processing flag
+      isProcessingAIResponse = true
+      
+      do {
+          // Create OpenAI service instance
+          let openAIService = try OpenAIService()
+          
+          // Extract all images from the conversation
+          let allImages = items.compactMap { item -> [UIImage]? in
+              if case .image(let images, _, _) = item {
+                  return images
+              }
+              return nil
+          }.flatMap { $0 }
+          
+          // Generate report
+          openAIService.generateReport(
+              from: buildMessageHistory(),
+              incidentType: nil,
+              isEmergency: isEmergencyFlow,
+              images: allImages
+          ) { [weak self] result in
+              guard let self = self else { return }
+              
+              DispatchQueue.main.async {
+                  self.isProcessingAIResponse = false
+                  
+                  switch result {
+                  case .success(let report):
+                      // Add intro message
+                      let introMessage = ChatMessage(
+                          id: UUID().uuidString,
+                          role: .assistant,
+                          content: "I've compiled your report based on our conversation:",
+                          timestamp: Date(),
+                          messageType: .chat
+                      )
+                      self.items.append(.text(introMessage))
+                      
+                      // Add the report
+                      self.items.append(.report(report))
+                      
+                  case .failure(let error):
+                      print("Report generation error: \(error)")
+                      self.addFallbackResponse()
+                  }
+              }
+          }
+          
+      } catch {
+          // Handle service initialization error
+          print("OpenAI service error: \(error)")
+          isProcessingAIResponse = false
+          addFallbackResponse()
+      }
   }
 }
