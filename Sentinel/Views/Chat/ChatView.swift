@@ -236,9 +236,6 @@ struct ChatView_Previews: PreviewProvider {
   static func createSubmissionReadyViewModel() -> ChatViewModel {
     let vm = ChatViewModel()
     
-    // Set report as ready for submission
-    vm.isReportReadyForSubmission = true
-    
     // Add sample messages for a completed report
     vm.items = [
       .text(ChatMessage(
@@ -277,6 +274,9 @@ struct ChatView_Previews: PreviewProvider {
         messageType: .chat
       ))
     ]
+    
+    // Set report as ready for submission - since we have 2 user messages, this is correct
+    vm.isReportReadyForSubmission = true
     
     return vm
   }

@@ -61,6 +61,20 @@ struct ChatMessageList: View {
                 .padding(.top, 8)
               }
               
+              // MARK: View Incidents Chip
+              if vm.shouldShowViewIncidentsChip(after: item) {
+                SuggestionChips(
+                  suggestions: ["View Incidents"],
+                  viewIncidents: true,
+                  isPrimary: true
+                ) { selected in
+                  if selected == "View Incidents" {
+                    vm.viewIncidents()
+                  }
+                }
+                .padding(.top, 8)
+              }
+              
             case .emergency(let level, _):
               // MARK: Emergency Notification
               EmergencyBubble(level: level)
@@ -386,6 +400,99 @@ struct ChatMessageList_Previews: PreviewProvider {
     return vm
   }
   
+  // Conversation with View Incidents chip after submission
+  static var viewIncidentsViewModel: ChatViewModel {
+    let vm = ChatViewModel()
+    
+    // Set flag to show View Incidents chip
+    vm.showViewIncidents = true
+    
+    // Add sample messages for a submitted report
+    vm.items = [
+      .text(ChatMessage(
+        id: "1",
+        role: .assistant,
+        content: "What type of incident would you like to report?",
+        timestamp: Date().addingTimeInterval(-500),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "2",
+        role: .user,
+        content: "Vandalism",
+        timestamp: Date().addingTimeInterval(-480),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "3",
+        role: .assistant,
+        content: "Thanks for reporting a Vandalism incident. Can you describe what happened?",
+        timestamp: Date().addingTimeInterval(-460),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "4",
+        role: .user,
+        content: "Someone spray painted graffiti on the wall in the alley",
+        timestamp: Date().addingTimeInterval(-440),
+        messageType: .chat
+      )),
+      .image(images: [UIImage(systemName: "photo.fill")!], id: "5", caption: "Here's a photo of the graffiti"),
+      .text(ChatMessage(
+        id: "6",
+        role: .assistant,
+        content: "Where did this happen exactly?",
+        timestamp: Date().addingTimeInterval(-400),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "7",
+        role: .user,
+        content: "South side alley near the loading dock",
+        timestamp: Date().addingTimeInterval(-380),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "8",
+        role: .assistant,
+        content: "I've compiled an incident report based on your information:",
+        timestamp: Date().addingTimeInterval(-360),
+        messageType: .chat
+      )),
+      .report(
+        ReportData(
+          title: "Vandalism Incident",
+          description: "Graffiti on wall in alley",
+          location: "South side alley near loading dock",
+          timestamp: Date().addingTimeInterval(-440),
+          status: .open,
+          userComments: [
+            "Someone spray painted graffiti on the wall in the alley",
+            "South side alley near the loading dock"
+          ],
+          images: [UIImage(systemName: "photo.fill")!]
+        ),
+        id: "9"
+      ),
+      .text(ChatMessage(
+        id: "10",
+        role: .assistant,
+        content: "Your incident report has been submitted successfully.",
+        timestamp: Date().addingTimeInterval(-240),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "11",
+        role: .assistant,
+        content: "You can view all incidents in the Incidents tab.",
+        timestamp: Date().addingTimeInterval(-220),
+        messageType: .chat
+      ))
+    ]
+    
+    return vm
+  }
+  
   static var previews: some View {
     Group {
       // Standard chat - Light mode
@@ -452,6 +559,19 @@ struct ChatMessageList_Previews: PreviewProvider {
         .background(Color("Background"))
         .preferredColorScheme(.dark)
         .previewDisplayName("Submit Ready - Dark")
+        
+      // Chat with View Incidents chip - Light mode
+      ChatMessageList()
+        .environmentObject(viewIncidentsViewModel)
+        .background(Color("Background"))
+        .previewDisplayName("View Incidents - Light")
+        
+      // Chat with View Incidents chip - Dark mode
+      ChatMessageList()
+        .environmentObject(viewIncidentsViewModel)
+        .background(Color("Background"))
+        .preferredColorScheme(.dark)
+        .previewDisplayName("View Incidents - Dark")
         
       // New chat with suggestion chips - Light mode
       ChatMessageList()

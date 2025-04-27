@@ -32,12 +32,48 @@
    cd sentinel
    ```
 
-2. **Copy and configure environment variables**
+2. **Configure your API Key**
+
+   There are three ways to set up your OpenAI API key:
+
+   **Option 1: Using Xcode Configuration (Recommended)**
 
    ```bash
-   cp .env.example .env
-   # Open .env and set your OPENAI_API_KEY
+   # Copy the example config file
+   cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
+   # Edit the file to add your API key
+   open Config/Secrets.xcconfig
    ```
+
+   Edit the file to set your OpenAI API key:
+
+   ```
+   OPENAI_API_KEY = your_openai_api_key_here
+   ```
+
+   **IMPORTANT:** After updating the Secrets.xcconfig file, you must:
+   
+   1. Clean the build folder (Product → Clean Build Folder)
+   2. Close and reopen Xcode
+   3. Build and run the project
+
+   **Option 2: Using Xcode Environment Variables**
+
+   This approach is good for local development:
+
+   - In Xcode, go to Product → Scheme → Edit Scheme...
+   - Under the Run phase, expand Arguments → Environment Variables
+   - Add `OPENAI_API_KEY` with your key as the value
+   
+   **Option 3: Hardcoded Key for Development (Temporary)**
+
+   For local development only, you can temporarily modify the `OpenAIService.swift` file:
+   
+   - Locate the `Method 3` section in the initializer
+   - Replace the hardcoded API key value with your actual key
+   - Remember to remove this change before committing to version control
+   
+   > ⚠️ **Security Warning:** Never commit your actual API key to version control.
 
 3. **Open in Xcode**
 
@@ -46,5 +82,5 @@
    ```
 
 4. **Build and Run**
-   - Target: iOS 15.0 or later
+   - Target: iOS 18.0 or later
    - Scheme: `Sentinel`

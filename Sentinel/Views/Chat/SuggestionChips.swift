@@ -7,6 +7,8 @@ struct SuggestionChips: View {
   let emergencyOption: Bool
   let cancelEmergency: Bool
   let submitReport: Bool
+  let viewIncidents: Bool
+  let isPrimary: Bool
   
   // Initialize with various options
   init(
@@ -14,12 +16,16 @@ struct SuggestionChips: View {
     emergencyOption: Bool = false,
     cancelEmergency: Bool = false,
     submitReport: Bool = false,
+    viewIncidents: Bool = false,
+    isPrimary: Bool = false,
     onSelect: @escaping (String) -> Void
   ) {
     self.suggestions = suggestions
     self.emergencyOption = emergencyOption
     self.cancelEmergency = cancelEmergency
     self.submitReport = submitReport
+    self.viewIncidents = viewIncidents
+    self.isPrimary = isPrimary
     self.onSelect = onSelect
   }
 
@@ -80,13 +86,29 @@ struct SuggestionChips: View {
         .tint(Color("AccentOrange"))
       }
       
+      // View incidents option if enabled
+      if viewIncidents {
+        Button {
+          onSelect("View Incidents")
+        } label: {
+          HStack(spacing: 4) {
+            Image(systemName: "list.bullet.clipboard.fill")
+              .font(.caption)
+            Text("View Incidents")
+              .fontWeight(.medium)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color("AccentBlue"))
+      }
+      
       // Regular suggestion chips
       ForEach(suggestions, id: \.self) { suggestion in
         Button(suggestion) {
           onSelect(suggestion)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Color("AccentBlue"))
+        .tint(isPrimary ? Color("AccentOrange") : Color("AccentBlue"))
       }
     }
     .padding(.horizontal, 12)
@@ -158,6 +180,21 @@ struct SuggestionChips_Previews: PreviewProvider {
       .background(Color("CardBackground"))
       .previewLayout(.sizeThatFits)
       .previewDisplayName("Submit Report - Light")
+      
+      // View incidents option
+      VStack(alignment: .leading, spacing: 8) {
+        Text("View Incidents Option").font(.headline)
+        SuggestionChips(
+          suggestions: ["View Incidents"],
+          isPrimary: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("View Incidents - Light")
       
       // Longer list that wraps to multiple lines
       VStack(alignment: .leading, spacing: 8) {
@@ -241,6 +278,22 @@ struct SuggestionChips_Previews: PreviewProvider {
       .previewLayout(.sizeThatFits)
       .preferredColorScheme(.dark)
       .previewDisplayName("Submit Report - Dark")
+      
+      // View incidents option (dark)
+      VStack(alignment: .leading, spacing: 8) {
+        Text("View Incidents Option").font(.headline)
+        SuggestionChips(
+          suggestions: ["View Incidents"],
+          isPrimary: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("View Incidents - Dark")
       
       // MARK: Chat Context Previews
       
@@ -333,6 +386,51 @@ struct SuggestionChips_Previews: PreviewProvider {
       .previewLayout(.sizeThatFits)
       .preferredColorScheme(.dark)
       .previewDisplayName("Emergency Cancel - Dark")
+      
+      // View incidents after report submission
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "report1",
+          role: .assistant,
+          content: "Your incident report has been submitted successfully. You can view all incidents in the Incidents tab.",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        SuggestionChips(
+          suggestions: ["View Incidents"],
+          isPrimary: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Report Submitted - Light")
+      
+      // View incidents after report submission (dark mode)
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "report1",
+          role: .assistant,
+          content: "Your incident report has been submitted successfully. You can view all incidents in the Incidents tab.",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        SuggestionChips(
+          suggestions: ["View Incidents"],
+          isPrimary: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Report Submitted - Dark")
     }
   }
 }

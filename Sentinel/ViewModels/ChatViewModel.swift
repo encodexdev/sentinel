@@ -83,9 +83,6 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       id: UUID().uuidString, role: .user, content: type, timestamp: Date(), messageType: .chat)
     items.append(.text(userMsg))
     
-    // Set report as ready for submission once an incident type is selected
-    isReportReadyForSubmission = true
-
     // Add assistant response
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
       guard let self = self else { return }
@@ -122,6 +119,19 @@ final class ChatViewModel: ObservableObject, TabNavigating {
             messageType: .chat
         )
         items.append(.text(userMsg))
+        
+        // Check if we have enough context for report submission
+        // Count user messages to determine if we're past the initial incident type selection
+        let userMessageCount = items.filter { 
+          if case .text(let message) = $0, message.role == .user { return true }
+          return false
+        }.count
+        
+        // Enable report submission once we have at least two user messages
+        // (incident type + details message)
+        if userMessageCount >= 2 && !isEmergencyFlow {
+          isReportReadyForSubmission = true
+        }
     }
     
     // If there are images, add them
@@ -135,6 +145,11 @@ final class ChatViewModel: ObservableObject, TabNavigating {
         // Clear the selected images
         selectedImages = []
         selectedItems = []
+        
+        // If user adds an image, we definitely have enough context to submit report
+        if !isEmergencyFlow {
+          isReportReadyForSubmission = true
+        }
     }
     
     // Clear the input text
@@ -389,8 +404,50 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Determines if the submit report chip should be shown after a message
   func shouldShowSubmitChip(after item: ChatItem) -> Bool {
-    // Only show submit chip in normal mode when report is ready for submission
-    if isEmergencyFlow || !isReportReadyForSubmission { return false }
+    // Only show submit chip in normal mode 
+    if isEmergencyFlow { return false }
+    
+    // Make sure this is a text item from the assistant
+    guard case .text(let msg) = item, msg.role == .assistant else { return false }
+    
+    // We need at least 4 messages for a meaningful conversation:
+    // 1. Assistant initial question
+    // 2. User selects incident type
+    // 3. Assistant asks for details
+    // 4. User provides details
+    let userMessagesCount = items.filter { 
+      if case .text(let message) = $0, message.role == .user {
+        return true
+      }
+      return false
+    }.count
+    
+    // Only show submit option if user has provided at least one follow-up message after incident type
+    if userMessagesCount < 2 {
+      return false
+    }
+    
+    // Set report as ready for submission now that we have sufficient context
+    isReportReadyForSubmission = true
+    
+    // Find the last assistant message
+    if let lastAssistantMsg = items.last(where: { 
+      if case .text(let message) = $0, message.role == .assistant {
+        return true
+      }
+      return false
+    }) {
+      // Show the submit chip after the last assistant message
+      return lastAssistantMsg.id == item.id
+    }
+    
+    return false
+  }
+  
+  /// Determines if the view incidents chip should be shown after a message
+  func shouldShowViewIncidentsChip(after item: ChatItem) -> Bool {
+    // Only show when showViewIncidents flag is true
+    if !showViewIncidents { return false }
     
     // Make sure this is a text item from the assistant
     guard case .text(let msg) = item, msg.role == .assistant else { return false }
@@ -402,7 +459,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       }
       return false
     }) {
-      // Show the submit chip after the last assistant message
+      // Show the view incidents chip after the last assistant message
       return lastAssistantMsg.id == item.id
     }
     
@@ -635,7 +692,10 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       }
   }
   
-  /// Finalize report submission with success messages and navigation
+  /// Flag indicating if a report was submitted and view incidents is available
+  @Published var showViewIncidents = false
+  
+  /// Finalize report submission with success messages
   private func finalizeReportSubmission() {
     // Find the latest report in the conversation
     var incidentReport: ReportData? = nil
@@ -656,17 +716,20 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     )
     items.append(.text(successMessage))
       
-    // Second message - Navigation info
+    // Second message - Prompt to view incidents
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
       guard let self = self else { return }
       let secondResponse = ChatMessage(
         id: UUID().uuidString,
         role: .assistant,
-        content: "Redirecting to the incidents page...",
+        content: "You can view all incidents in the Incidents tab.",
         timestamp: Date(),
         messageType: .chat
       )
       self.items.append(.text(secondResponse))
+      
+      // Set flag to show view incidents chip
+      self.showViewIncidents = true
     }
 
     // Log submission event with report details
@@ -683,13 +746,12 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     }
     
     logAnalyticsEvent("report_submitted", details: details)
-
-    // Navigate to the incidents tab after a short delay
-    // to allow the user to see the success message
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { [weak self] in
-      self?.restartChat()
-      self?.openIncidentsTab()
-    }
+  }
+  
+  /// Navigate to incidents tab
+  func viewIncidents() {
+    restartChat()
+    openIncidentsTab()
   }
 
   /// Restarts the chat to its initial state
@@ -718,6 +780,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     selectedItems = []
     isEmergencyFlow = false
     isReportReadyForSubmission = false
+    showViewIncidents = false
   }
 
   /// Cancel the emergency and return to normal incident reporting
@@ -831,37 +894,41 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       DispatchQueue.main.async { [weak self] in
           guard let self = self else { return }
           
-          // If this is the first token, create a new message
-          if self.responseBuffer.isEmpty {
-              // Create new assistant message
-              let newMessage = ChatMessage(
-                  id: UUID().uuidString,
-                  role: .assistant,
-                  content: token,
-                  timestamp: Date(),
-                  messageType: self.isEmergencyFlow ? .emergency : .chat
+          // Add to buffer first
+          self.responseBuffer += token
+          
+          // Check if we need to create a new message or update an existing one
+          if let lastIndex = self.items.indices.last,
+             case .text(let lastMsg) = self.items[lastIndex],
+             lastMsg.role == .assistant,
+             // Only append to the most recent assistant message if it's from the current streaming session
+             lastMsg.timestamp.timeIntervalSinceNow > -5 { // Consider messages from last 5 seconds part of current stream
+              
+              // Update the existing message with new content
+              let updatedMsg = ChatMessage(
+                  id: lastMsg.id,
+                  role: lastMsg.role,
+                  content: self.responseBuffer, // Use full buffer, not just append token
+                  timestamp: lastMsg.timestamp,
+                  messageType: lastMsg.messageType
               )
-              self.items.append(.text(newMessage))
+              
+              // Replace the last item
+              self.items[lastIndex] = .text(updatedMsg)
           } else {
-              // Update the last message if it's from the assistant
-              if case .text(let lastMsg) = self.items.last,
-                 lastMsg.role == .assistant {
-                  // Create a new message with updated content
-                  let updatedMsg = ChatMessage(
-                      id: lastMsg.id,
-                      role: lastMsg.role,
-                      content: lastMsg.content + token,
-                      timestamp: lastMsg.timestamp,
-                      messageType: lastMsg.messageType
+              // Need to create a new message - only do this once we have meaningful content
+              // to avoid empty bubbles
+              if !self.responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                  let newMessage = ChatMessage(
+                      id: UUID().uuidString,
+                      role: .assistant,
+                      content: self.responseBuffer,
+                      timestamp: Date(),
+                      messageType: self.isEmergencyFlow ? .emergency : .chat
                   )
-                  
-                  // Replace the last item
-                  self.items[self.items.count - 1] = .text(updatedMsg)
+                  self.items.append(.text(newMessage))
               }
           }
-          
-          // Add to buffer
-          self.responseBuffer += token
       }
   }
   
@@ -980,8 +1047,28 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Finalize AI response after streaming is complete
   private func finalizeAIResponse() {
-      // Reset buffers
-      responseBuffer = ""
+      // Check if there's buffered content that hasn't been added to a message yet
+      if !responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          let existingMessageUpdated = self.items.indices.last.flatMap { lastIndex -> Bool? in
+              if case .text(let lastMsg) = self.items[lastIndex], lastMsg.role == .assistant {
+                  return true
+              }
+              return nil
+          } ?? false
+          
+          // If we haven't updated an existing message and there's content in the buffer,
+          // we need to create a new message
+          if !existingMessageUpdated {
+              let newMessage = ChatMessage(
+                  id: UUID().uuidString,
+                  role: .assistant,
+                  content: responseBuffer,
+                  timestamp: Date(),
+                  messageType: self.isEmergencyFlow ? .emergency : .chat
+              )
+              self.items.append(.text(newMessage))
+          }
+      }
       
       // Process any pending function calls
       if !currentFunctionName.isEmpty && !currentFunctionArgs.isEmpty {
@@ -991,13 +1078,28 @@ final class ChatViewModel: ObservableObject, TabNavigating {
           }
       }
       
-      // Reset function call data
+      // Reset all streaming buffers
+      responseBuffer = ""
       currentFunctionName = ""
       currentFunctionArgs = ""
   }
   
   /// Add fallback response in case of errors
   private func addFallbackResponse() {
+      // Reset any partial response buffer first
+      responseBuffer = ""
+      
+      // Check if the last message is an empty assistant message
+      if let lastIndex = items.indices.last,
+         case .text(let lastMsg) = items[lastIndex],
+         lastMsg.role == .assistant,
+         lastMsg.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+         
+         // Remove the empty message
+         items.remove(at: lastIndex)
+      }
+      
+      // Add fallback message
       let fallbackMessage = ChatMessage(
           id: UUID().uuidString,
           role: .assistant,
