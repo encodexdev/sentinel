@@ -5,7 +5,7 @@ import SwiftUI
 
 struct HomeView: View {
   // MARK: - Properties
-  
+
   @StateObject private var viewModel = HomeViewModel()
   @State private var position = MapCameraPosition.region(
     MKCoordinateRegion(
@@ -15,13 +15,13 @@ struct HomeView: View {
   )
 
   // MARK: - Computed Properties
-  
+
   /// Extract first name from TestData.user
   private var firstName: String {
     let parts = TestData.user.fullName.split(separator: " ")
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
-  
+
   /// Map style configuration
   private var mapStyleConfig: MapStyle {
     .standard(
@@ -31,9 +31,9 @@ struct HomeView: View {
       showsTraffic: false
     )
   }
-  
+
   // MARK: - Body
-  
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -95,7 +95,7 @@ struct HomeView: View {
             }
           }
           .padding(.horizontal, 16)
-          
+
           // MARK: My Incidents Section
           SectionCard(
             title: "My Incidents",
@@ -114,10 +114,10 @@ struct HomeView: View {
           }
           .padding(.horizontal, 16)
 
-          // MARK: Team Incidents Section
-          SectionCard(title: "Team Incidents") {
+          // MARK: Location Incidents Section
+          SectionCard(title: "Location Incidents") {
             VStack(spacing: 8) {
-              ForEach(viewModel.teamIncidents) { incident in
+              ForEach(viewModel.locationIncidents) { incident in
                 IncidentCard(incident: incident) {
                   viewModel.openIncidentsView()
                 }
@@ -135,7 +135,7 @@ struct HomeView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           ProfileIcon(user: TestData.user)
-            .padding(.bottom, 8) 
+            .padding(.bottom, 8)
         }
       }
     }

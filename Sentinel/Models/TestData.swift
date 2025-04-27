@@ -9,7 +9,7 @@ enum TestData {
     fullName: "Marcus Brooks",
     role: "Security Officer",
     avatarURL: nil,
-    avatarImageName: "ProfileImage", // Use local image asset
+    avatarImageName: "ProfileImage",  // Use local image asset
     email: "marcus.brooks@gmail.com",
     phoneNumber: "(555) 123-4567",
     startDate: "08/15/2023",
@@ -41,7 +41,7 @@ enum TestData {
     ),
   ]
 
-  static let teamIncidents =
+  static let locationIncidents =
     incidents + [
       Incident(
         id: "3",
