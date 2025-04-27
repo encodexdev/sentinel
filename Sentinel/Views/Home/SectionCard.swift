@@ -1,11 +1,24 @@
 import SwiftUI
 
+// MARK: - SectionCard
+
 struct SectionCard<Content: View>: View {
+  // MARK: - Properties
+  
+  /// Title displayed in the header of the card
   let title: String
+  
+  /// Optional action button title displayed in the header
   let actionTitle: String?
+  
+  /// Optional action executed when the action button is tapped
   let action: (() -> Void)?
+  
+  /// Content view to display inside the card
   let content: Content
 
+  // MARK: - Initialization
+  
   init(
     title: String,
     actionTitle: String? = nil,
@@ -18,8 +31,11 @@ struct SectionCard<Content: View>: View {
     self.content = content()
   }
 
+  // MARK: - Body
+  
   var body: some View {
     VStack(spacing: 16) {  // Increased spacing between header and content
+      // MARK: Card Header
       HStack {
         Text(title)
           .font(.headline)
@@ -35,6 +51,7 @@ struct SectionCard<Content: View>: View {
       .padding(.horizontal, 16)
       .padding(.top, 16)  // Added top padding
 
+      // MARK: Card Content
       VStack(spacing: 12) {  // Increased spacing between content items
         content
       }

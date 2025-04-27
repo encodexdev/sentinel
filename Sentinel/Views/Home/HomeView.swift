@@ -1,8 +1,12 @@
 import MapKit
 import SwiftUI
 
+// MARK: - HomeView
+
 struct HomeView: View {
-  @StateObject private var vm = HomeViewModel()
+  // MARK: - Properties
+  
+  @StateObject private var viewModel = HomeViewModel()
   @State private var position = MapCameraPosition.region(
     MKCoordinateRegion(
       center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
@@ -10,20 +14,31 @@ struct HomeView: View {
     )
   )
 
-  // Extract first name from TestData.user
+  // MARK: - Computed Properties
+  
+  /// Extract first name from TestData.user
   private var firstName: String {
     let parts = TestData.user.fullName.split(separator: " ")
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
-
-  @State private var showingChatView = false
-  @State private var showingMapView = false
+  
+  /// Map style configuration
+  private var mapStyleConfig: MapStyle {
+    .standard(
+      elevation: .automatic,
+      emphasis: .muted,
+      pointsOfInterest: .excludingAll,
+      showsTraffic: false
+    )
+  }
+  
+  // MARK: - Body
   
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(spacing: 24) {
-          // MARK: Greeting
+          // MARK: Greeting Section
           VStack(alignment: .leading, spacing: 4) {
             Text("Welcome, \(firstName)")
               .font(.largeTitle).bold()
@@ -34,9 +49,9 @@ struct HomeView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal, 16)
 
-          // MARK: Report Button
+          // MARK: Report Button Section
           Button {
-            showingChatView = true
+            viewModel.openReportView()
           } label: {
             Label("Report New Incident", systemImage: "exclamationmark.bubble")
               .font(.headline)
@@ -49,40 +64,51 @@ struct HomeView: View {
           .padding(.horizontal, 16)
           .padding(.vertical, 8)
 
-          // MARK: Map Overview
-          SectionCard(title: "Map Overview") {
+          // MARK: Map Overview Section
+          SectionCard(title: "Personnel Map") {
             ZStack {
               Map(position: $position) {
                 UserAnnotation()
               }
-                .frame(height: 180)
-                .cornerRadius(12)
+              .mapStyle(mapStyleConfig)
+              .frame(height: 180)
+              .cornerRadius(12)
+              .contentShape(Rectangle())
+              .onTapGesture {
+                viewModel.openMapView()
+              }
 
+              // Open Map Button
               Button {
-                showingMapView = true
+                viewModel.openMapView()
               } label: {
                 Text("Open Map")
-                  .padding(.all, 8)
-                  .background(.ultraThinMaterial)
+                  .font(.subheadline)
+                  .fontWeight(.medium)
+                  .padding(.vertical, 8)
+                  .padding(.horizontal, 16)
+                  .background(Color.accentColor)
+                  .foregroundColor(.white)
                   .cornerRadius(8)
-                  .shadow(radius: 5)
               }
-              .buttonStyle(.borderedProminent)
+              .shadow(radius: 2)
             }
           }
-          .padding(.horizontal, 16)  // Added vertical padding
+          .padding(.horizontal, 16)
           
           // MARK: My Incidents Section
           SectionCard(
             title: "My Incidents",
             actionTitle: "View all",
             action: {
-              // TODO: handle "View all"
+              viewModel.openIncidentsView()
             }
           ) {
             VStack(spacing: 8) {
-              ForEach(vm.myIncidents) { incident in
-                IncidentCard(incident: incident)
+              ForEach(viewModel.myIncidents) { incident in
+                IncidentCard(incident: incident) {
+                  viewModel.openIncidentsView()
+                }
               }
             }
           }
@@ -91,8 +117,10 @@ struct HomeView: View {
           // MARK: Team Incidents Section
           SectionCard(title: "Team Incidents") {
             VStack(spacing: 8) {
-              ForEach(vm.teamIncidents) { incident in
-                IncidentCard(incident: incident)
+              ForEach(viewModel.teamIncidents) { incident in
+                IncidentCard(incident: incident) {
+                  viewModel.openIncidentsView()
+                }
               }
             }
           }
@@ -107,16 +135,17 @@ struct HomeView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           ProfileIcon(user: TestData.user)
-            .padding(.bottom, 8)  // Add padding below the profile icon
+            .padding(.bottom, 8) 
         }
-      }
-      .sheet(isPresented: $showingMapView) {
-        MapView()
-      }
-      .fullScreenCover(isPresented: $showingChatView) {
-        ChatView()
       }
     }
   }
 }
 
+// MARK: - Previews
+
+struct HomeView_Previews: PreviewProvider {
+  static var previews: some View {
+    HomeView()
+  }
+}

@@ -1,48 +1,49 @@
-import SwiftUI
 import LucideIcons
+import SwiftUI
 import UIKit
 
-// Extension to resize UIImages properly
+/// Extension to resize UIImages properly
 extension UIImage {
-    func resized(to size: CGSize) -> UIImage {
-        return UIGraphicsImageRenderer(size: size).image { _ in
-            draw(in: CGRect(origin: .zero, size: size))
-        }
+  func resized(to size: CGSize) -> UIImage {
+    return UIGraphicsImageRenderer(size: size).image { _ in
+      draw(in: CGRect(origin: .zero, size: size))
     }
+  }
 }
 
 struct MainTabView: View {
-    private let iconSize: CGFloat = 28
-    
-    var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Image(uiImage: Lucide.house.withRenderingMode(.alwaysTemplate)
-                        .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Home")
-                }
+  private let iconSize: CGFloat = 28
+  @StateObject private var tabState = TabState.shared
 
-            ChatView()
-                .tabItem {
-                    Image(uiImage: Lucide.messageSquareWarning.withRenderingMode(.alwaysTemplate)
-                        .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Report")
-                }
+  var body: some View {
+    TabView(selection: $tabState.selectedTab) {
+      HomeView()
+        .tag(TabSelection.home.rawValue)
+        .tabItem {
+          LucideIcon(icon: Lucide.house, size: iconSize)
+          Text("Home")
+        }
 
-            MapView()
-                .tabItem {
-                    Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate)
-                        .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Map")
-                }
+      ChatView()
+        .tag(TabSelection.report.rawValue)
+        .tabItem {
+          LucideIcon(icon: Lucide.messageSquareWarning, size: iconSize)
+          Text("Report")
+        }
 
-            IncidentsView()
-                .tabItem {
-                    Image(uiImage: Lucide.clipboard.withRenderingMode(.alwaysTemplate)
-                        .resized(to: CGSize(width: iconSize, height: iconSize)))
-                    Text("Incidents") 
-                }
+      MapView()
+        .tag(TabSelection.map.rawValue)
+        .tabItem {
+          LucideIcon(icon: Lucide.mapPin, size: iconSize)
+          Text("Map")
+        }
+
+      IncidentsView()
+        .tag(TabSelection.incidents.rawValue)
+        .tabItem {
+          LucideIcon(icon: Lucide.clipboard, size: iconSize)
+          Text("Incidents")
         }
     }
+  }
 }
