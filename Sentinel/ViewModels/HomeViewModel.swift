@@ -15,9 +15,9 @@ final class HomeViewModel: ObservableObject, TabNavigating {
   // MARK: - Initialization
 
   init() {
-    // For now, use TestData for both
+    // Use separate incident arrays for my incidents and location incidents
     myIncidents = TestData.incidents
-    locationIncidents = TestData.incidents.shuffled()
+    locationIncidents = TestData.locationIncidents
   }
 
   // MARK: - Navigation Methods

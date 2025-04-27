@@ -28,11 +28,15 @@ struct IncidentsView: View {
   
   /// Filter picker at the top of the view
   private var filterPicker: some View {
-    Picker("Filter", selection: $selectedFilter) {
-      ForEach(IncidentFilter.allCases, id: \.self) { filter in
-        Text(filter.rawValue)
+      // Removed Resolved for space
+      Picker("Filter", selection: $selectedFilter) {
+        ForEach(
+          IncidentFilter.allCases.filter { $0 != .resolved },
+          id: \.self
+        ) { filter in
+          Text(filter.rawValue)
+        }
       }
-    }
     .pickerStyle(.segmented)
     .padding(.horizontal)
     .padding(.top, 8)
@@ -79,10 +83,10 @@ struct IncidentsView: View {
     }
   }
   
-  /// Shows incidents filtered by status (open, in progress, etc.)
+  /// Shows incidents filtered by status (open, in progress, resolved)
   @ViewBuilder
   private var statusFilteredIncidentsSection: some View {
-    if selectedFilter == .open || selectedFilter == .inProgress {
+    if selectedFilter == .open || selectedFilter == .inProgress || selectedFilter == .resolved {
       let filteredIncidents = getFilteredIncidentsByStatus()
       
       SectionCard(title: "\(selectedFilter.rawValue) Incidents") {
@@ -117,6 +121,7 @@ struct IncidentsView: View {
       switch selectedFilter {
       case .open: return $0.status == .open
       case .inProgress: return $0.status == .inProgress
+      case .resolved: return $0.status == .resolved
       default: return true
       }
     }
@@ -129,6 +134,7 @@ enum IncidentFilter: String, CaseIterable {
   case location = "Location"
   case open = "Open"
   case inProgress = "Pending"
+  case resolved = "Resolved"
 }
 
 // MARK: - Previews
@@ -188,7 +194,7 @@ struct IncidentsFilterPreview: View {
       myIncidentsContent
     case .location:
       locationIncidentsContent
-    case .open, .inProgress:
+    case .open, .inProgress, .resolved:
       statusFilteredContent
     }
   }
@@ -219,6 +225,7 @@ struct IncidentsFilterPreview: View {
       switch filter {
       case .open: return $0.status == .open
       case .inProgress: return $0.status == .inProgress
+      case .resolved: return $0.status == .resolved
       default: return false
       }
     }

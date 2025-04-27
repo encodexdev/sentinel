@@ -67,16 +67,22 @@ struct HomeView: View {
           // MARK: Map Overview Section
           SectionCard(title: "Personnel Map") {
             ZStack {
+              // Map View
               Map(position: $position) {
                 UserAnnotation()
               }
               .mapStyle(mapStyleConfig)
               .frame(height: 180)
               .cornerRadius(12)
-              .contentShape(Rectangle())
-              .onTapGesture {
-                viewModel.openMapView()
-              }
+              .allowsHitTesting(false) // Disable direct interaction with map
+              
+              // Transparent overlay that handles tap for the entire area
+              Color.clear
+                .frame(height: 180)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                  viewModel.openMapView()
+                }
 
               // Open Map Button
               Button {
@@ -105,23 +111,32 @@ struct HomeView: View {
             }
           ) {
             VStack(spacing: 8) {
-              ForEach(viewModel.myIncidents) { incident in
+              ForEach(Array(viewModel.myIncidents.prefix(2))) { incident in
                 IncidentCard(incident: incident) {
                   viewModel.openIncidentsView()
                 }
               }
+              
             }
           }
           .padding(.horizontal, 16)
 
           // MARK: Location Incidents Section
-          SectionCard(title: "Location Incidents") {
+          SectionCard(
+            title: "Location Incidents",
+            actionTitle: "View all",
+            action: {
+              viewModel.openIncidentsView()
+            }
+          ) {
             VStack(spacing: 8) {
-              ForEach(viewModel.locationIncidents) { incident in
+              ForEach(Array(viewModel.locationIncidents.prefix(2))) { incident in
                 IncidentCard(incident: incident) {
                   viewModel.openIncidentsView()
                 }
               }
+              
+              
             }
           }
           .padding(.horizontal, 16)
