@@ -3,10 +3,11 @@ import MapKit
 import SwiftUI
 
 struct MapView: View {
+  // MARK: - Properties
   @StateObject private var vm = MapViewModel()
   @Environment(\.dismiss) private var dismiss
-  @State private var droppedIncidents = Set<String>()
 
+  // MARK: - Map Configuration
   private var mapStyleConfig: MapStyle {
     .standard(
       elevation: .automatic,
@@ -16,67 +17,37 @@ struct MapView: View {
     )
   }
 
+  // MARK: - Body
   var body: some View {
     NavigationStack {
       ZStack(alignment: .bottom) {
+        // MARK: Map View
         Map(position: $vm.position) {
-          // Guard pins
+          // MARK: Incident Pins
           ForEach(vm.incidents) { incident in
             Annotation("", coordinate: incident.coordinate) {
               IncidentPin(
                 status: incident.status,
-                dropped: droppedIncidents.contains(incident.id)
+                dropped: vm.droppedIncidents.contains(incident.id)
               )
             }
           }
 
-          // User location marker
-          // Custom user annotation with directional arrow
+          // MARK: User Location
           let userCoord = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
           Annotation("You", coordinate: userCoord) {
-            ZStack {
-              // Single clean pulsing glow
-              Circle()
-                .fill(Color.accentColor.opacity(0.3))
-                .frame(width: 36, height: 36)
-                .modifier(PulseEffect())
-
-              // Direction indicator (arrow pointing up)
-              Image(systemName: "location.north.fill")
-                .font(.title3)
-                .foregroundColor(.accentColor)
-                .background(
-                  Circle()
-                    .fill(.white)
-                    .frame(width: 32, height: 32)
-                )
-            }
+            // Use the dedicated UserLocationView that handles rotation
+            UserLocationView(cameraHeading: vm.cameraHeading)
           }
 
-          // Show route line if navigating
+          // MARK: Navigation Route
           if vm.isNavigating, !vm.routePoints.isEmpty {
             MapPolyline(coordinates: vm.routePoints)
               .stroke(.blue, lineWidth: 5)
           }
         }
         .mapStyle(mapStyleConfig)
-        .onAppear {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            animateDrop()
-          }
-
-          // Find the open incident to trigger toast
-          if let openIncident = vm.incidents.first(where: { $0.status == .open }) {
-            vm.selectedIncident = openIncident
-
-            // Delay showing the toast until after animations begin
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-              withAnimation {
-                vm.showAcceptToast = true
-              }
-            }
-          }
-        }
+        .onAppear { vm.handleAppearance() }
         .navigationTitle("Personnel")
         .navigationBarItems(
           trailing: Button {
@@ -86,7 +57,7 @@ struct MapView: View {
           }
         )
 
-        // Accept toast
+        // MARK: Accept Toast
         if vm.showAcceptToast, let incident = vm.selectedIncident {
           AcceptToast(
             incident: incident,
@@ -106,7 +77,7 @@ struct MapView: View {
           .padding(.bottom, 20)
         }
 
-        // Navigation panel
+        // MARK: Navigation Panel
         if vm.isNavigating, let navigation = vm.activeNavigation {
           NavigationPanel(
             navigationInfo: navigation,
@@ -125,30 +96,6 @@ struct MapView: View {
     }
   }
 
-  private func animateDrop() {
-    // Use distance-based delays for animation
-    for incident in vm.incidents {
-      // Use safe optional access with default value
-      let delay = vm.animationDelays[incident.id, default: 0.0]
-
-      DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-        withAnimation(.easeOut(duration: 0.6)) {
-          _ = droppedIncidents.insert(incident.id)
-        }
-      }
-
-      // If it's the open incident, schedule showing the toast
-      if incident.status == .open {
-        let toastDelay = delay + 0.8  // Show toast after pin appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + toastDelay) {
-          withAnimation {
-            vm.selectedIncident = incident
-            vm.showAcceptToast = true
-          }
-        }
-      }
-    }
-  }
 }
 
 struct MapView_Previews: PreviewProvider {

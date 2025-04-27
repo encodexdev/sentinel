@@ -1,7 +1,11 @@
 import MapKit
 import SwiftUI
 
+// MARK: - HomeView
+
 struct HomeView: View {
+  // MARK: - Properties
+  
   @StateObject private var viewModel = HomeViewModel()
   @State private var position = MapCameraPosition.region(
     MKCoordinateRegion(
@@ -10,12 +14,15 @@ struct HomeView: View {
     )
   )
 
-  // Extract first name from TestData.user
+  // MARK: - Computed Properties
+  
+  /// Extract first name from TestData.user
   private var firstName: String {
     let parts = TestData.user.fullName.split(separator: " ")
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
   
+  /// Map style configuration
   private var mapStyleConfig: MapStyle {
     .standard(
       elevation: .automatic,
@@ -25,11 +32,13 @@ struct HomeView: View {
     )
   }
   
+  // MARK: - Body
+  
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(spacing: 24) {
-          // MARK: Greeting
+          // MARK: Greeting Section
           VStack(alignment: .leading, spacing: 4) {
             Text("Welcome, \(firstName)")
               .font(.largeTitle).bold()
@@ -40,7 +49,7 @@ struct HomeView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal, 16)
 
-          // MARK: Report Button
+          // MARK: Report Button Section
           Button {
             viewModel.openReportView()
           } label: {
@@ -55,7 +64,7 @@ struct HomeView: View {
           .padding(.horizontal, 16)
           .padding(.vertical, 8)
 
-          // MARK: Map Overview
+          // MARK: Map Overview Section
           SectionCard(title: "Personnel Map") {
             ZStack {
               Map(position: $position) {
@@ -69,6 +78,7 @@ struct HomeView: View {
                 viewModel.openMapView()
               }
 
+              // Open Map Button
               Button {
                 viewModel.openMapView()
               } label: {
@@ -84,7 +94,7 @@ struct HomeView: View {
               .shadow(radius: 2)
             }
           }
-          .padding(.horizontal, 16)  // Added vertical padding
+          .padding(.horizontal, 16)
           
           // MARK: My Incidents Section
           SectionCard(
@@ -125,7 +135,7 @@ struct HomeView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           ProfileIcon(user: TestData.user)
-            .padding(.bottom, 8)  // Add padding below the profile icon
+            .padding(.bottom, 8) 
         }
       }
     }

@@ -1,36 +1,40 @@
-import SwiftUI
-import MapKit
 import LucideIcons
+import MapKit
+import SwiftUI
+
+// MARK: - AcceptToast
 
 struct AcceptToast: View {
+  // MARK: - Properties
+
   let incident: IncidentAnnotation
   let onAccept: () -> Void
   let onTimeout: () -> Void
 
   @State private var sliderValue: Double = 0.0
   @State private var timer: Timer?
-  
-  // Store fare as a state so it remains constant during the toast lifetime
+
+  /// Store fare as a state so it remains constant during the toast lifetime
   @State private var fare: Double = 0.0
-  
+
+  // MARK: - Body
+
   var body: some View {
     VStack(spacing: 12) {
-      // Drag indicator
+      // MARK: Drag Indicator
       Capsule()
         .frame(width: 40, height: 5)
         .foregroundColor(.gray.opacity(0.5))
 
-      // Summary
+      // MARK: Incident Details
       Text("New Security Incident")
         .font(.headline)
       Text("Type: \(incident.title.isEmpty ? "Unknown" : incident.title)")
         .font(.subheadline)
 
-      // Fare with constant value
       Text("Reward: $\(String(format: "%.2f", fare))")
         .font(.title2).bold()
 
-      // Timer indicator
       HStack {
         Text("Time remaining")
           .font(.caption)
@@ -38,19 +42,19 @@ struct AcceptToast: View {
         Text("\(Int(sliderValue * 10))s")
           .font(.caption)
       }
-      
-      // Progress bar instead of slider
+
+      // MARK: Progress Bar
       ProgressView(value: sliderValue, total: 1.0)
         .padding(.vertical, 4)
-      
-      // Accept button
+
+      // MARK: Accept Button
       Button(action: accept) {
         HStack {
           Image(uiImage: Lucide.navigation.withRenderingMode(.alwaysTemplate))
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 20, height: 20)
-          
+
           Text("ACCEPT & NAVIGATE")
             .fontWeight(.bold)
         }
@@ -72,6 +76,8 @@ struct AcceptToast: View {
       startTimer()
     }
   }
+
+  // MARK: - Helper Methods
 
   private func startTimer() {
     timer?.invalidate()

@@ -2,7 +2,7 @@ import LucideIcons
 import SwiftUI
 import UIKit
 
-// Extension to resize UIImages properly
+/// Extension to resize UIImages properly
 extension UIImage {
   func resized(to size: CGSize) -> UIImage {
     return UIGraphicsImageRenderer(size: size).image { _ in

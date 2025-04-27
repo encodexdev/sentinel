@@ -1,27 +1,25 @@
-import SwiftUI
-import MapKit
 import LucideIcons
+import MapKit
+import SwiftUI
 
 struct NavigationPanel: View {
+
   let navigationInfo: NavigationInfo
   let progress: Double
   let onCancel: () -> Void
-  
+
   var body: some View {
     VStack(spacing: 12) {
-      // Drag indicator
       Capsule()
         .frame(width: 40, height: 5)
         .foregroundColor(.gray.opacity(0.5))
-      
+
       HStack(spacing: 16) {
-        // ETA and distance
+        // MARK: Navigation Info
         VStack(alignment: .leading, spacing: 8) {
-          // Case details
           Text("En route to incident")
             .font(.headline)
-          
-          // ETA section
+
           HStack(spacing: 12) {
             // ETA icon
             Image(uiImage: Lucide.clock.withRenderingMode(.alwaysTemplate))
@@ -29,7 +27,7 @@ struct NavigationPanel: View {
               .aspectRatio(contentMode: .fit)
               .frame(width: 18, height: 18)
               .foregroundColor(.blue)
-            
+
             // ETA info
             VStack(alignment: .leading, spacing: 2) {
               Text("ETA")
@@ -38,7 +36,7 @@ struct NavigationPanel: View {
               Text("\(navigationInfo.etaMinutes) min")
                 .font(.system(size: 14, weight: .medium))
             }
-            
+
             // Arrive by time
             VStack(alignment: .leading, spacing: 2) {
               Text("Arrive at")
@@ -48,8 +46,8 @@ struct NavigationPanel: View {
                 .font(.system(size: 14, weight: .medium))
             }
           }
-          
-          // Distance information
+
+          // MARK: Distance Section
           HStack(spacing: 12) {
             // Distance icon
             Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
@@ -57,7 +55,7 @@ struct NavigationPanel: View {
               .aspectRatio(contentMode: .fit)
               .frame(width: 18, height: 18)
               .foregroundColor(.orange)
-            
+
             // Distance
             VStack(alignment: .leading, spacing: 2) {
               Text("Distance")
@@ -66,7 +64,7 @@ struct NavigationPanel: View {
               Text(navigationInfo.formattedDistance)
                 .font(.system(size: 14, weight: .medium))
             }
-            
+
             // Reward
             VStack(alignment: .leading, spacing: 2) {
               Text("Reward")
@@ -77,12 +75,12 @@ struct NavigationPanel: View {
             }
           }
         }
-        
+
         Spacer()
       }
       .padding(.horizontal, 8)
-      
-      // Progress indicator
+
+      // MARK: Progress Indicator
       VStack(spacing: 4) {
         HStack {
           Text("Progress")
@@ -91,20 +89,20 @@ struct NavigationPanel: View {
           Text("\(Int(progress * 100))%")
             .font(.caption)
         }
-        
+
         ProgressView(value: progress, total: 1.0)
           .tint(.blue)
       }
       .padding(.horizontal, 8)
-      
-      // Cancel button
+
+      // MARK: Cancel Button
       Button(action: onCancel) {
         HStack {
           Image(uiImage: Lucide.x.withRenderingMode(.alwaysTemplate))
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 16, height: 16)
-          
+
           Text("CANCEL NAVIGATION")
             .fontWeight(.medium)
             .font(.subheadline)
