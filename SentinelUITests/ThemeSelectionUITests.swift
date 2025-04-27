@@ -24,7 +24,7 @@ extension XCUIApplication {
     }
 }
 
-final class ThemeSwitchingTests: XCTestCase {
+final class ThemeSelectionUITests: XCTestCase {
     
     var app: XCUIApplication!
     
@@ -41,14 +41,17 @@ final class ThemeSwitchingTests: XCTestCase {
         app = nil
     }
     
-    @MainActor
     func testThemeSwitching() throws {
         // First check current theme (likely system or light)
         let initialStyle = app.currentInterfaceStyle()
         
         // Navigate to profile tab (assuming we have a Profile tab)
-        let profileTab = app.tabBars.buttons.element(boundBy: 3) // Usually the last tab
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 2), "Profile tab should exist")
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.exists, "Tab bar should exist")
+        
+        // Tap the last tab (Profile)
+        let profileTab = tabBar.buttons.element(boundBy: tabBar.buttons.count - 1)
+        XCTAssertTrue(profileTab.exists, "Profile tab should exist")
         profileTab.tap()
         
         // Tap on settings gear icon
@@ -70,7 +73,7 @@ final class ThemeSwitchingTests: XCTestCase {
         let targetOption = (targetMode == .dark) ? "Dark" : "Light"
         
         // Select target mode
-        let optionButton = app.buttons[targetOption]
+        let optionButton = app.staticTexts[targetOption]
         XCTAssertTrue(optionButton.waitForExistence(timeout: 2), "\(targetOption) option should appear")
         optionButton.tap()
         
@@ -81,14 +84,24 @@ final class ThemeSwitchingTests: XCTestCase {
         app.buttons["Done"].tap()
         
         // Check if theme changed properly
-        let newStyle = app.currentInterfaceStyle()
-        XCTAssertEqual(newStyle, targetMode, "Theme should have changed to \(targetMode)")
+        let newIsDarkMode = app.otherElements["themeInspector-dark"].exists
+        let newIsLightMode = app.otherElements["themeInspector-light"].exists
+        
+        if targetMode == .dark {
+            XCTAssertTrue(newIsDarkMode, "Theme should have changed to dark mode")
+            XCTAssertFalse(newIsLightMode, "Light mode should be disabled")
+        } else {
+            XCTAssertTrue(newIsLightMode, "Theme should have changed to light mode")
+            XCTAssertFalse(newIsDarkMode, "Dark mode should be disabled")
+        }
         
         // Go back to settings to verify the setting persisted
         profileTab.tap()
+        
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 2), "Settings button should exist again")
         settingsButton.tap()
         
-        // Wait for settings to appear
+        // Wait for settings to appear again
         XCTAssertTrue(settingsTitle.waitForExistence(timeout: 2), "Settings screen should appear again")
         
         // Check theme again

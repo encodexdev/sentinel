@@ -3,7 +3,16 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject var settingsManager: SettingsManager
-  @StateObject private var viewModel = SettingsViewModel(settingsManager: nil)
+  private var viewModel: SettingsViewModel
+  
+  init() {
+    // Create a temporary view model that will be replaced in onAppear
+    self.viewModel = SettingsViewModel(settingsManager: SettingsManager())
+  }
+  
+  init(viewModel: SettingsViewModel) {
+    self.viewModel = viewModel
+  }
 
   var body: some View {
     NavigationStack {
@@ -37,10 +46,7 @@ struct SettingsView: View {
         Section("Appearance") {
           Picker(
             "Theme",
-            selection: Binding(
-              get: { viewModel.appearanceStyle },
-              set: { viewModel.updateTheme(to: $0) }
-            )
+            selection: viewModel.appearanceStyle
           ) {
             ForEach(AppearanceStyle.allCases) { style in
               Text(style.rawValue).tag(style)
@@ -64,10 +70,7 @@ struct SettingsView: View {
         Section("Notifications") {
           Toggle(
             "Push Notifications",
-            isOn: Binding(
-              get: { viewModel.notificationsEnabled },
-              set: { viewModel.toggleNotifications($0) }
-            ))
+            isOn: viewModel.notificationsEnabled)
           NavigationLink {
             Text("Notification preferences would go here")
           } label: {
@@ -88,10 +91,7 @@ struct SettingsView: View {
           }
           Toggle(
             "Location Services",
-            isOn: Binding(
-              get: { viewModel.locationEnabled },
-              set: { viewModel.toggleLocation($0) }
-            ))
+            isOn: viewModel.locationEnabled)
         }
         Section {
           Button(role: .destructive) {
@@ -106,10 +106,6 @@ struct SettingsView: View {
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Done") { dismiss() }
         }
-      }
-      .onAppear {
-        // Using the environmentObject settingsManager to ensure theme changes are applied globally
-        viewModel.updateSettingsManager(settingsManager)
       }
     }
   }

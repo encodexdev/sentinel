@@ -28,6 +28,7 @@ struct ProfileIcon: View {
         }
         .navigationDestination(isPresented: $showingProfileView) {
             ProfileView()
+            // Environment object will be automatically passed from parent
         }
     }
     

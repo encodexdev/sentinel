@@ -173,7 +173,8 @@ struct ProfileView: View {
       }
     }
     .sheet(isPresented: $showingSettings) {
-      SettingsView()
+      // Create a view model with the environment's settings manager
+      SettingsView(viewModel: SettingsViewModel(settingsManager: settingsManager))
     }
   }
 
