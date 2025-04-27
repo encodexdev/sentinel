@@ -232,6 +232,20 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       messageType: .chat
     )
     items.append(.text(successMessage))
+      
+      
+      // Second message - Request details (short delay)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        guard let self = self else { return }
+        let secondResponse = ChatMessage(
+          id: UUID().uuidString,
+          role: .assistant,
+          content: "Redirecting to the incidents page...",
+          timestamp: Date(),
+          messageType: .chat
+        )
+        self.items.append(.text(secondResponse))
+      }
 
     // Log submission event
     logAnalyticsEvent(
@@ -244,7 +258,8 @@ final class ChatViewModel: ObservableObject, TabNavigating {
 
     // Navigate to the incidents tab after a short delay
     // to allow the user to see the success message
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { [weak self] in
+      self?.restartChat()
       self?.openIncidentsTab()
     }
 
