@@ -46,79 +46,24 @@ class OpenAIService {
   // MARK: - Initializer
   
   init(apiKey: String? = nil) throws {
-    // Try loading from provided key first
-    if let key = apiKey, !key.isEmpty {
-      self.apiKey = key
-      return
-    }
-    
-    // Hard-coded key for development - replace with your key if needed
-    // This is a fallback if .env doesn't work
-    // WARNING: Remove this before production deployment!
-    #if DEBUG
-    let hardcodedKey = ""  // Replace with your key during development if needed
-    if !hardcodedKey.isEmpty {
-      self.apiKey = hardcodedKey
-      print("Using hardcoded API key for development")
-      return
-    }
-    #endif
-    
     // Load environment variables from .env
     do {
-      // Try different possible locations for .env file
-      let possibleLocations = [
-        // Current bundle path
-        Bundle.main.bundlePath + "/.env",
-        // Project root (if different from bundle)
-        Bundle.main.bundlePath + "/../.env",
-        // User's home directory
-        FileManager.default.homeDirectoryForCurrentUser.path + "/Documents/GitHub/sentinel/.env",
-        // Current directory
-        ".env"
-      ]
-      
-      var loaded = false
-      
-      // Try each location
-      for location in possibleLocations {
-        print("Trying to load .env from: \(location)")
-        
-        if let data = try? Data(contentsOf: URL(fileURLWithPath: location)),
-           let envContent = String(data: data, encoding: .utf8) {
-          print("Found .env file at: \(location)")
-          _ = try DotEnv.loadContents(envContent)
-          loaded = true
-          break
-        }
-      }
-      
-      if !loaded {
-        print("Could not find .env file in any of the expected locations")
-      }
-      
-      // Print a debug message with environment variable
-      if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !envKey.isEmpty {
-        print("API Key loaded from environment, length: \(envKey.count)")
-        self.apiKey = envKey
-        return
-      } else {
-        print("API Key not found in environment variables")
-      }
+      // Could load this in an environment loader if there were other api services
+      _ = try DotEnv.load(path: ".env")
     } catch {
       // Could not load .env
-      print("Error loading .env file: \(error)")
+      throw OpenAIServiceError.apiKeyMissing
     }
-    
-    // If we got here, we couldn't find a valid API key
-    throw OpenAIServiceError.apiKeyMissing
-  }
-  
-  /// Method to manually set the API key
-  func setApiKey(_ key: String) {
-    if !key.isEmpty {
+    // Resolve API key: provided, or from environment
+    if let key = apiKey, !key.isEmpty {
       self.apiKey = key
+    } else if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !envKey.isEmpty {
+      self.apiKey = envKey
+    } else {
+      throw OpenAIServiceError.apiKeyMissing
     }
+
+    // Test openai service here.
   }
   
   // MARK: - System Prompts
