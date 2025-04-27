@@ -48,12 +48,27 @@ struct MapView: View {
         }
         .mapStyle(mapStyleConfig)
         .onAppear { vm.handleAppearance() }
-        .navigationTitle("Personnel")
+        .navigationTitle("Map")
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(
-          trailing: Button {
-            vm.centerOnUser()
-          } label: {
-            Image(systemName: "location.fill")
+          trailing: HStack(spacing: 16) {
+            // Reset map to show all incidents
+            Button {
+              withAnimation {
+                vm.resetToOverviewMap()
+              }
+            } label: {
+              Image(systemName: "map")
+                .imageScale(.large)
+            }
+            
+            // Center on user location
+            Button {
+              vm.centerOnUser()
+            } label: {
+              Image(systemName: "location.fill")
+                .imageScale(.large)
+            }
           }
         )
 

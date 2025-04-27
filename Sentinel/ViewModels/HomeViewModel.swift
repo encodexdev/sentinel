@@ -1,25 +1,38 @@
 import Foundation
 import SwiftUI
 
+// MARK: - HomeViewModel
+
 final class HomeViewModel: ObservableObject, TabNavigating {
+  // MARK: - Published Properties
+  
+  /// Incidents assigned to the current user
   @Published var myIncidents: [Incident] = []
+  
+  /// Incidents assigned to the team/organization
   @Published var teamIncidents: [Incident] = []
 
+  // MARK: - Initialization
+  
   init() {
     // For now, use TestData for both
     myIncidents = TestData.incidents
     teamIncidents = TestData.incidents.shuffled()
   }
   
-  // Tab navigation functionality with cleaner names
+  // MARK: - Navigation Methods
+  
+  /// Opens the map view tab
   func openMapView() {
     openMapTab()
   }
   
+  /// Opens the report incident view/tab
   func openReportView() {
     openReportTab()
   }
   
+  /// Opens the incidents list view/tab
   func openIncidentsView() {
     openIncidentsTab()
   }

@@ -124,7 +124,8 @@ class MapViewModel: ObservableObject {
     computeAnimationDelays()
   }
 
-  private func updateMapRegion(userCoord: CLLocationCoordinate2D) {
+  /// Updates the map region to show all incidents with the user at center
+  func updateMapRegion(userCoord: CLLocationCoordinate2D) {
     let coords = incidents.map(\.coordinate)
     let lats = coords.map(\.latitude)
     let lons = coords.map(\.longitude)
@@ -135,6 +136,8 @@ class MapViewModel: ObservableObject {
       let minLon = lons.min()
     else { return }
 
+    // Calculate padding to ensure all incidents are visible
+    // Use 20% padding (1.2 multiplier) to avoid incidents at the edge
     let latDelta = max(maxLat - userCoord.latitude, userCoord.latitude - minLat) * 2 * 1.2
     let lonDelta = max(maxLon - userCoord.longitude, userCoord.longitude - minLon) * 2 * 1.2
 
@@ -287,9 +290,28 @@ class MapViewModel: ObservableObject {
     pointMapTowardsIncident(incident: incident, heading: heading)
   }
 
-  /// Cancels the active navigation
+  /// Cancels the active navigation and resets the map view
   func cancelNavigation() {
     navigationManager.cancelNavigation()
+    
+    // First reset the camera heading
+    self.cameraHeading = 0
+    
+    // Then zoom out to show all incidents with animation
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+      withAnimation(.easeInOut(duration: 1.2)) {
+        self.resetToOverviewMap()
+      }
+    }
+  }
+  
+  /// Resets the map to show an overview of all incidents
+  func resetToOverviewMap() {
+    // Get user coordinate as the center reference
+    let userCoord = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+    
+    // Calculate a region that encompasses all incidents
+    updateMapRegion(userCoord: userCoord)
   }
 
   /// Checks if there's an active navigation
@@ -319,6 +341,10 @@ class MapViewModel: ObservableObject {
 
   /// Handles initial view appearance setup
   func handleAppearance() {
+    // Make sure we see all incidents when the view first appears
+    resetToOverviewMap()
+    
+    // Animate dropping pins onto the map
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
       self.animateDropIncidents()
     }

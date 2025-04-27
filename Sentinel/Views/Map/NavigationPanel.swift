@@ -2,11 +2,21 @@ import LucideIcons
 import MapKit
 import SwiftUI
 
-struct NavigationPanel: View {
+// MARK: - NavigationPanel
 
+struct NavigationPanel: View {
+  // MARK: - Properties
+
+  /// Navigation information to display
   let navigationInfo: NavigationInfo
+
+  /// Current navigation progress (0.0 to 1.0)
   let progress: Double
+
+  /// Action to perform when navigation is canceled
   let onCancel: () -> Void
+
+  // MARK: - Body
 
   var body: some View {
     VStack(spacing: 12) {
@@ -17,7 +27,7 @@ struct NavigationPanel: View {
       HStack(spacing: 16) {
         // MARK: Navigation Info
         VStack(alignment: .leading, spacing: 8) {
-          Text("En route to incident")
+          Text("En route to \(navigationInfo.incident.title)")
             .font(.headline)
 
           HStack(spacing: 12) {
@@ -37,18 +47,6 @@ struct NavigationPanel: View {
                 .font(.system(size: 14, weight: .medium))
             }
 
-            // Arrive by time
-            VStack(alignment: .leading, spacing: 2) {
-              Text("Arrive at")
-                .font(.caption2)
-                .foregroundColor(.gray)
-              Text(navigationInfo.formattedETA)
-                .font(.system(size: 14, weight: .medium))
-            }
-          }
-
-          // MARK: Distance Section
-          HStack(spacing: 12) {
             // Distance icon
             Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
               .resizable()
@@ -65,6 +63,12 @@ struct NavigationPanel: View {
                 .font(.system(size: 14, weight: .medium))
             }
 
+            // Distance icon
+            Image(uiImage: Lucide.mapPin.withRenderingMode(.alwaysTemplate))
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: 18, height: 18)
+              .foregroundColor(.orange)
             // Reward
             VStack(alignment: .leading, spacing: 2) {
               Text("Reward")
@@ -74,6 +78,7 @@ struct NavigationPanel: View {
                 .font(.system(size: 14, weight: .medium))
             }
           }
+
         }
 
         Spacer()
@@ -121,4 +126,59 @@ struct NavigationPanel: View {
     .shadow(radius: 5)
     .padding(.horizontal, 16)
   }
+}
+
+// MARK: - Previews
+
+#Preview {
+  ZStack {
+    // Background for contrast
+    Color.gray.opacity(0.2)
+
+    // Preview different progress states in vertical stack
+    VStack(spacing: 40) {
+      // Just started navigation
+      NavigationPanel(
+        navigationInfo: createSampleNavInfo(),
+        progress: 0.1,
+        onCancel: {}
+      )
+      .previewDisplayName("Starting Navigation")
+
+      // Halfway there
+      NavigationPanel(
+        navigationInfo: createSampleNavInfo(minutes: 8),
+        progress: 0.5,
+        onCancel: {}
+      )
+      .previewDisplayName("Mid Navigation")
+
+      // Almost arrived
+      NavigationPanel(
+        navigationInfo: createSampleNavInfo(minutes: 2),
+        progress: 0.9,
+        onCancel: {}
+      )
+      .previewDisplayName("Almost Arrived")
+    }
+    .padding(.vertical, 40)
+  }
+  .ignoresSafeArea()
+}
+
+// Helper function to create sample navigation info for previews
+private func createSampleNavInfo(minutes: Int = 15) -> NavigationInfo {
+  let sampleIncident = IncidentAnnotation(
+    id: "preview-123",
+    title: "Medical Emergency",
+    coordinate: CLLocationCoordinate2D(latitude: 37.785, longitude: -122.405),
+    status: .open
+  )
+
+  return NavigationInfo(
+    incident: sampleIncident,
+    etaMinutes: minutes,
+    distance: Measurement(value: 2.4, unit: .kilometers),
+    fare: 45.75
+  )
 }
