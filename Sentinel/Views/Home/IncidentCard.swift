@@ -2,6 +2,7 @@ import SwiftUI
 
 struct IncidentCard: View {
     let incident: Incident
+    var onTap: (() -> Void)? = nil
     
     private var statusColor: Color {
         switch incident.status {
@@ -50,6 +51,15 @@ struct IncidentCard: View {
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let onTap = onTap {
+                onTap()
+            } else {
+                // Default navigate to incidents tab
+                TabState.shared.switchTo(.incidents)
+            }
+        }
     }
 }
 

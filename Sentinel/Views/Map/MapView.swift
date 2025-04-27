@@ -1,6 +1,6 @@
+import LucideIcons
 import MapKit
 import SwiftUI
-import LucideIcons
 
 struct MapView: View {
   @StateObject private var vm = MapViewModel()
@@ -30,28 +30,29 @@ struct MapView: View {
             }
           }
 
-          // User location marker (appears above guard pins)
+          // User location marker
           // Custom user annotation with directional arrow
           let userCoord = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
           Annotation("You", coordinate: userCoord) {
             ZStack {
-              // Outer glow
+              // Single clean pulsing glow
               Circle()
                 .fill(Color.accentColor.opacity(0.3))
-                .frame(width: 64, height: 64)
+                .frame(width: 36, height: 36)
+                .modifier(PulseEffect())
 
               // Direction indicator (arrow pointing up)
               Image(systemName: "location.north.fill")
-                .font(.title)
+                .font(.title3)
                 .foregroundColor(.accentColor)
                 .background(
                   Circle()
                     .fill(.white)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 32, height: 32)
                 )
             }
           }
-          
+
           // Show route line if navigating
           if vm.isNavigating, !vm.routePoints.isEmpty {
             MapPolyline(coordinates: vm.routePoints)
@@ -76,11 +77,8 @@ struct MapView: View {
             }
           }
         }
-        .navigationTitle("Map")
+        .navigationTitle("Personnel")
         .navigationBarItems(
-          leading: Button("Done") {
-            dismiss()
-          },
           trailing: Button {
             vm.centerOnUser()
           } label: {
@@ -107,7 +105,7 @@ struct MapView: View {
           .animation(.easeInOut, value: vm.showAcceptToast)
           .padding(.bottom, 20)
         }
-        
+
         // Navigation panel
         if vm.isNavigating, let navigation = vm.activeNavigation {
           NavigationPanel(

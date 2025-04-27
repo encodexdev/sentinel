@@ -96,7 +96,9 @@ struct HomeView: View {
           ) {
             VStack(spacing: 8) {
               ForEach(viewModel.myIncidents) { incident in
-                IncidentCard(incident: incident)
+                IncidentCard(incident: incident) {
+                  viewModel.openIncidentsView()
+                }
               }
             }
           }
@@ -106,7 +108,9 @@ struct HomeView: View {
           SectionCard(title: "Team Incidents") {
             VStack(spacing: 8) {
               ForEach(viewModel.teamIncidents) { incident in
-                IncidentCard(incident: incident)
+                IncidentCard(incident: incident) {
+                  viewModel.openIncidentsView()
+                }
               }
             }
           }

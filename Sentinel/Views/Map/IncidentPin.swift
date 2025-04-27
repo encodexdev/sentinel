@@ -24,7 +24,7 @@ struct IncidentPin: View {
       // glowing halo
       Circle()
         .fill(iconColor)
-        .frame(width: 32, height: 32)
+        .frame(width: 36, height: 36)
         .blur(radius: 12)
         .opacity(0.4)
         .scaleEffect(pulsing ? 1.1 : 0.8)
@@ -32,15 +32,14 @@ struct IncidentPin: View {
       // white inner circle
       Circle()
         .fill(Color.white)
-        .frame(width: 36, height: 36)
+        .frame(width: 32, height: 32)
 
-      // person icon
-      Image(
-        uiImage: Lucide.shieldUser.withRenderingMode(.alwaysTemplate)
-          .resized(to: CGSize(width: iconSize, height: iconSize))
+      // person icon using the new LucideIcon component
+      LucideIcon.shieldUser(
+        size: iconSize,
+        color: iconColor
       )
 
-      .foregroundColor(iconColor)
     }
     .offset(y: yOffset)
     .opacity(dropped ? 1 : 0)

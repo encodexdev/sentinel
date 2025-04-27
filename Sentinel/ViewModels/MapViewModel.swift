@@ -251,6 +251,7 @@ class MapViewModel: ObservableObject {
     func acceptIncident(_ incident: IncidentAnnotation) {
         navigationManager.startNavigation(to: incident)
         showAcceptToast = false
+        centerOnUser()
     }
     
     /// Cancels the active navigation

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-final class HomeViewModel: ObservableObject {
+final class HomeViewModel: ObservableObject, TabNavigating {
   @Published var myIncidents: [Incident] = []
   @Published var teamIncidents: [Incident] = []
 
@@ -11,16 +11,16 @@ final class HomeViewModel: ObservableObject {
     teamIncidents = TestData.incidents.shuffled()
   }
   
-  // Tab navigation functionality
+  // Tab navigation functionality with cleaner names
   func openMapView() {
-    TabViewManager.shared.switchToTab(.map)
+    openMapTab()
   }
   
   func openReportView() {
-    TabViewManager.shared.switchToTab(.report)
+    openReportTab()
   }
   
   func openIncidentsView() {
-    TabViewManager.shared.switchToTab(.incidents)
+    openIncidentsTab()
   }
 }
