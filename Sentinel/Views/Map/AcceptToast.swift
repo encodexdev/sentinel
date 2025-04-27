@@ -57,7 +57,7 @@ struct AcceptToast: View {
       // MARK: Progress Bar
       ProgressView(value: sliderValue, total: 1.0)
         .padding(.vertical, 4)
-        .tint(.accentOrange)
+        .tint(.red)
 
       // MARK: Accept Button
       Button(action: accept) {
@@ -72,7 +72,7 @@ struct AcceptToast: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(.accentOrange)
+        .background(.red)
         .foregroundColor(.white)
         .cornerRadius(10)
       }
