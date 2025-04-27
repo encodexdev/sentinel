@@ -31,11 +31,45 @@ struct EmergencyBubble: View, Identifiable {
 
 struct EmergencyBubble_Previews: PreviewProvider {
     static var previews: some View {
-        VStack(spacing: 16) {
-            EmergencyBubble(level: "police")
-            EmergencyBubble(level: "security")
+        Group {
+            // Light mode
+            VStack(spacing: 16) {
+                EmergencyBubble(level: "police")
+                EmergencyBubble(level: "security")
+                EmergencyBubble(level: "medical")
+            }
+            .padding()
+            .background(Color("Background"))
+            .previewLayout(.sizeThatFits)
+            .previewDisplayName("Emergency Bubbles - Light")
+            
+            // Dark mode
+            VStack(spacing: 16) {
+                EmergencyBubble(level: "police")
+                EmergencyBubble(level: "security")
+            }
+            .padding()
+            .background(Color("Background"))
+            .preferredColorScheme(.dark)
+            .previewLayout(.sizeThatFits)
+            .previewDisplayName("Emergency Bubbles - Dark")
+            
+            // In chat context
+            VStack {
+                Spacer()
+                EmergencyBubble(level: "security")
+                ChatBubble(message: ChatMessage(
+                    id: "response1",
+                    role: .assistant,
+                    content: "Security has been notified. They are on their way to your location.",
+                    timestamp: Date(),
+                    messageType: .chat
+                ))
+            }
+            .padding()
+            .background(Color("Background"))
+            .previewLayout(.sizeThatFits)
+            .previewDisplayName("In Chat Context")
         }
-        .background(Color.black.opacity(0.1))
-        .previewLayout(.sizeThatFits)
     }
 }

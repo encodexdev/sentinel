@@ -72,3 +72,100 @@ struct ChatBubble: View {
       .frame(maxWidth: maxWidth, alignment: message.role == .user ? .trailing : .leading)
   }
 }
+
+// MARK: - Previews
+
+struct ChatBubble_Previews: PreviewProvider {
+  static var previews: some View {
+    Group {
+      // Standard message bubbles
+      VStack(spacing: 16) {
+        // User message
+        ChatBubble(message: ChatMessage(
+          id: "1",
+          role: .user,
+          content: "Hello, I want to report a suspicious person in the lobby.",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        // Assistant message
+        ChatBubble(message: ChatMessage(
+          id: "2",
+          role: .assistant,
+          content: "Thanks for reporting. Can you describe what makes this person suspicious?",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        // Long message
+        ChatBubble(message: ChatMessage(
+          id: "3",
+          role: .user,
+          content: "They're wearing a black hoodie and have been walking around the building for over 30 minutes, looking at the security cameras and checking door handles. They don't appear to have an ID badge.",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewDisplayName("Standard Chat Bubbles")
+      
+      // Special message types
+      VStack(spacing: 16) {
+        // Emergency message
+        ChatBubble(message: ChatMessage(
+          id: "4",
+          role: .user,
+          content: "Need immediate assistance! Intruder at east entrance!",
+          timestamp: Date(),
+          messageType: .emergency
+        ))
+        
+        // Image message
+        ChatBubble(message: ChatMessage(
+          id: "5",
+          role: .user,
+          content: "Here's a photo of the suspicious vehicle.",
+          timestamp: Date(),
+          messageType: .image
+        ))
+        
+        // Assistant with image reference
+        ChatBubble(message: ChatMessage(
+          id: "6",
+          role: .assistant,
+          content: "I can see the vehicle in your photo. Is this the correct license plate: ABC-123?",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewDisplayName("Special Message Types")
+      
+      // Dark mode preview
+      VStack(spacing: 16) {
+        ChatBubble(message: ChatMessage(
+          id: "7",
+          role: .user,
+          content: "This is how it looks in dark mode.",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        ChatBubble(message: ChatMessage(
+          id: "8",
+          role: .assistant,
+          content: "Dark mode looks great!",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+      }
+      .padding()
+      .background(Color("Background"))
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Dark Mode")
+    }
+  }
+}

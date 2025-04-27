@@ -4,6 +4,18 @@ import SwiftUI
 struct SuggestionChips: View {
   let suggestions: [String]
   let onSelect: (String) -> Void
+  let emergencyOption: Bool
+  
+  // Initialize with or without emergency option
+  init(
+    suggestions: [String],
+    emergencyOption: Bool = false,
+    onSelect: @escaping (String) -> Void
+  ) {
+    self.suggestions = suggestions
+    self.emergencyOption = emergencyOption
+    self.onSelect = onSelect
+  }
 
   // Spacing between chips
   private let horizontalSpacing: CGFloat = 8
@@ -14,6 +26,23 @@ struct SuggestionChips: View {
       horizontalSpacing: horizontalSpacing,
       verticalSpacing: verticalSpacing
     ) {
+      // Emergency option if enabled
+      if emergencyOption {
+        Button {
+          onSelect("Emergency")
+        } label: {
+          HStack(spacing: 4) {
+            Image(systemName: "exclamationmark.triangle.fill")
+              .font(.caption)
+            Text("Emergency")
+              .fontWeight(.medium)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color.red)
+      }
+      
+      // Regular suggestion chips
       ForEach(suggestions, id: \.self) { suggestion in
         Button(suggestion) {
           onSelect(suggestion)
@@ -23,6 +52,143 @@ struct SuggestionChips: View {
       }
     }
     .padding(.horizontal, 12)
+  }
+}
+
+// MARK: - Previews
+
+struct SuggestionChips_Previews: PreviewProvider {
+  static var previews: some View {
+    Group {
+      // MARK: Light Mode Previews
+      
+      // Standard incident types
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Incident Type").font(.headline)
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"]
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Standard - Light")
+      
+      // With emergency option
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Incident Type with Emergency").font(.headline)
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"],
+          emergencyOption: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("With Emergency - Light")
+      
+      // Longer list that wraps to multiple lines
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Location").font(.headline)
+        SuggestionChips(
+          suggestions: [
+            "Lobby", "Parking Garage", "East Wing", "West Wing", "Conference Room",
+            "Cafeteria", "Break Room", "Executive Suite", "Server Room", "Roof Access"
+          ],
+          emergencyOption: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Multiple Lines - Light")
+      
+      // MARK: Dark Mode Previews
+      
+      // Standard incident types (dark)
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Incident Type").font(.headline)
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"]
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Standard - Dark")
+      
+      // With emergency option (dark)
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Incident Type with Emergency").font(.headline)
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"],
+          emergencyOption: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("With Emergency - Dark")
+      
+      // MARK: Chat Context Previews
+      
+      // Light mode chat context
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "assistant1",
+          role: .assistant,
+          content: "What type of incident would you like to report?",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"],
+          emergencyOption: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Chat Context - Light")
+      
+      // Dark mode chat context
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "assistant1",
+          role: .assistant,
+          content: "What type of incident would you like to report?",
+          timestamp: Date(),
+          messageType: .chat
+        ))
+        
+        SuggestionChips(
+          suggestions: ["Suspicious Person", "Theft", "Vandalism", "Other"],
+          emergencyOption: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Chat Context - Dark")
+    }
   }
 }
 
