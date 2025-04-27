@@ -48,13 +48,15 @@ struct ChatView: View {
           }
         }
         
-        // Only show Submit button in normal mode
+        // Only show Submit button in normal mode when report is ready
         if !viewModel.isEmergencyFlow {
           ToolbarItem(placement: .navigationBarTrailing) {
             Button("Submit") {
               showingSubmitConfirmation = true
             }
             .fontWeight(.bold)
+            .disabled(!viewModel.isReportReadyForSubmission)
+            .opacity(viewModel.isReportReadyForSubmission ? 1.0 : 0.5)
           }
         }
       }
@@ -87,6 +89,14 @@ struct ChatContent: View {
       ChatInputBar()
     }
     .background(Color("Background"))
+    .onAppear {
+      // Set up notification observer for submit button in chat
+      NotificationCenter.default.addObserver(forName: Notification.Name("ShowSubmitConfirmation"), 
+                                            object: nil, 
+                                            queue: .main) { _ in
+        showSubmitConfirmation.wrappedValue = true
+      }
+    }
   }
 }
 
@@ -198,6 +208,17 @@ struct ChatView_Previews: PreviewProvider {
         .environmentObject(createEmergencyViewModel())
         .preferredColorScheme(.dark)
         .previewDisplayName("Emergency - Dark")
+        
+      // Report ready for submission in light mode
+      ChatView()
+        .environmentObject(createSubmissionReadyViewModel())
+        .previewDisplayName("Submit Ready - Light")
+        
+      // Report ready for submission in dark mode
+      ChatView()
+        .environmentObject(createSubmissionReadyViewModel())
+        .preferredColorScheme(.dark)
+        .previewDisplayName("Submit Ready - Dark")
     }
   }
   
@@ -207,6 +228,55 @@ struct ChatView_Previews: PreviewProvider {
     
     // Simulate emergency mode
     vm.sendEmergencyMessage(level: "Police")
+    
+    return vm
+  }
+  
+  // Helper to create a view model with report ready for submission
+  static func createSubmissionReadyViewModel() -> ChatViewModel {
+    let vm = ChatViewModel()
+    
+    // Set report as ready for submission
+    vm.isReportReadyForSubmission = true
+    
+    // Add sample messages for a completed report
+    vm.items = [
+      .text(ChatMessage(
+        id: "1",
+        role: .assistant,
+        content: "What type of incident would you like to report?",
+        timestamp: Date().addingTimeInterval(-300),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "2",
+        role: .user,
+        content: "Suspicious Person",
+        timestamp: Date().addingTimeInterval(-240),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "3",
+        role: .assistant,
+        content: "Thanks for reporting a Suspicious Person incident. Can you describe what happened?",
+        timestamp: Date().addingTimeInterval(-220),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "4",
+        role: .user,
+        content: "Someone was trying car door handles in the parking lot",
+        timestamp: Date().addingTimeInterval(-180),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "5",
+        role: .assistant,
+        content: "I've recorded your report. Would you like to submit it now or add more details?",
+        timestamp: Date().addingTimeInterval(-60),
+        messageType: .chat
+      ))
+    ]
     
     return vm
   }

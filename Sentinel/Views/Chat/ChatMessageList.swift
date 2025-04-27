@@ -34,6 +34,33 @@ struct ChatMessageList: View {
                 .padding(.top, 8)
               }
               
+              // MARK: Cancel Emergency Chip
+              if vm.shouldShowCancelChip(after: item) {
+                SuggestionChips(
+                  suggestions: [],
+                  cancelEmergency: true
+                ) {
+                  if $0 == "Cancel Emergency" {
+                    vm.showCancelEmergencyConfirmation = true
+                  }
+                }
+                .padding(.top, 8)
+              }
+              
+              // MARK: Submit Report Chip
+              if vm.shouldShowSubmitChip(after: item) {
+                SuggestionChips(
+                  suggestions: [],
+                  submitReport: true
+                ) {
+                  if $0 == "Submit Report" {
+                    // Show submit confirmation dialog
+                    NotificationCenter.default.post(name: Notification.Name("ShowSubmitConfirmation"), object: nil)
+                  }
+                }
+                .padding(.top, 8)
+              }
+              
             case .emergency(let level, _):
               // MARK: Emergency Notification
               EmergencyBubble(level: level)
@@ -46,11 +73,15 @@ struct ChatMessageList: View {
             }
           }
         }
-        .padding(.vertical, 16)
         .padding(.horizontal, 12)
+        .padding(.vertical, 16)
       }
-      .onChange(of: vm.items.count) {
+      .onChange(of: vm.items.count) { _ in
         vm.scrollToBottom(proxy)
+      }
+      // Add a spacer view at the bottom to serve as a scroll anchor
+      .safeAreaInset(edge: .bottom) {
+        Color.clear.frame(height: 60)
       }
     }
     .background(Color("Background"))
@@ -170,10 +201,100 @@ struct ChatMessageList_Previews: PreviewProvider {
     return vm
   }
   
+  // Emergency conversation with cancel button
+  static var emergencyCancelViewModel: ChatViewModel {
+    let vm = ChatViewModel()
+    vm.isEmergencyFlow = true
+    
+    // Add sample messages for an emergency
+    vm.items = [
+      .text(ChatMessage(
+        id: "1",
+        role: .assistant,
+        content: "What type of incident would you like to report?",
+        timestamp: Date().addingTimeInterval(-300),
+        messageType: .chat
+      )),
+      .emergency(level: "Security", id: "2"),
+      .text(ChatMessage(
+        id: "3",
+        role: .assistant,
+        content: "SECURITY assistance has been requested.",
+        timestamp: Date().addingTimeInterval(-240),
+        messageType: .emergency
+      )),
+      .text(ChatMessage(
+        id: "4",
+        role: .assistant,
+        content: "Please provide any details about your emergency.",
+        timestamp: Date().addingTimeInterval(-230),
+        messageType: .emergency
+      )),
+      .text(ChatMessage(
+        id: "5",
+        role: .assistant,
+        content: "Help is on the way: ETA 5 mins.",
+        timestamp: Date().addingTimeInterval(-220),
+        messageType: .emergency
+      ))
+    ]
+    
+    return vm
+  }
+  
   // New conversation with choice chips
   static var newChatViewModel: ChatViewModel {
     let vm = ChatViewModel()
     // A new chat only has the initial message
+    return vm
+  }
+  
+  // Conversation with report ready for submission
+  static var readyForSubmissionViewModel: ChatViewModel {
+    let vm = ChatViewModel()
+    
+    // Set report as ready for submission
+    vm.isReportReadyForSubmission = true
+    
+    // Add sample messages for a completed report
+    vm.items = [
+      .text(ChatMessage(
+        id: "1",
+        role: .assistant,
+        content: "What type of incident would you like to report?",
+        timestamp: Date().addingTimeInterval(-300),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "2",
+        role: .user,
+        content: "Suspicious Person",
+        timestamp: Date().addingTimeInterval(-240),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "3",
+        role: .assistant,
+        content: "Thanks for reporting a Suspicious Person incident. Can you describe what happened?",
+        timestamp: Date().addingTimeInterval(-220),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "4",
+        role: .user,
+        content: "Someone was trying car door handles in the parking lot",
+        timestamp: Date().addingTimeInterval(-180),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "5",
+        role: .assistant,
+        content: "I've recorded your report. Would you like to submit it now or add more details?",
+        timestamp: Date().addingTimeInterval(-60),
+        messageType: .chat
+      ))
+    ]
+    
     return vm
   }
   
@@ -204,6 +325,32 @@ struct ChatMessageList_Previews: PreviewProvider {
         .background(Color("Background"))
         .preferredColorScheme(.dark)
         .previewDisplayName("Emergency - Dark")
+        
+      // Emergency with cancel option - Light mode
+      ChatMessageList()
+        .environmentObject(emergencyCancelViewModel)
+        .background(Color("Background"))
+        .previewDisplayName("Emergency Cancel - Light")
+        
+      // Emergency with cancel option - Dark mode
+      ChatMessageList()
+        .environmentObject(emergencyCancelViewModel)
+        .background(Color("Background"))
+        .preferredColorScheme(.dark)
+        .previewDisplayName("Emergency Cancel - Dark")
+        
+      // Report ready for submission - Light mode
+      ChatMessageList()
+        .environmentObject(readyForSubmissionViewModel)
+        .background(Color("Background"))
+        .previewDisplayName("Submit Ready - Light")
+        
+      // Report ready for submission - Dark mode
+      ChatMessageList()
+        .environmentObject(readyForSubmissionViewModel)
+        .background(Color("Background"))
+        .preferredColorScheme(.dark)
+        .previewDisplayName("Submit Ready - Dark")
         
       // New chat with suggestion chips - Light mode
       ChatMessageList()

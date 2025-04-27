@@ -23,6 +23,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   // Track the flow type (emergency or normal)
   @Published var isEmergencyFlow = false
   @Published var showCancelEmergencyConfirmation = false
+  
+  // Track report completion state
+  @Published var isReportReadyForSubmission = false
 
   func selectIncidentType(_ type: String) {
     // Check if this is an emergency selection
@@ -36,6 +39,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     let userMsg = ChatMessage(
       id: UUID().uuidString, role: .user, content: type, timestamp: Date(), messageType: .chat)
     items.append(.text(userMsg))
+    
+    // Set report as ready for submission once an incident type is selected
+    isReportReadyForSubmission = true
 
     // Add assistant response
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -212,10 +218,65 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     guard case .text(let msg) = item, msg.role == .assistant else { return false }
     return items.count == 1 && items.first?.id == item.id
   }
+  
+  /// Determines if the cancel emergency chip should be shown after a message
+  func shouldShowCancelChip(after item: ChatItem) -> Bool {
+    // Only show cancel chip in emergency mode and after the last assistant message with emergency type
+    if !isEmergencyFlow { return false }
+    
+    // Make sure this is a text item from the assistant with emergency message type
+    guard case .text(let msg) = item, 
+          msg.role == .assistant,
+          msg.messageType == .emergency else { return false }
+    
+    // Find the last emergency message from the assistant
+    if let lastEmergencyMsg = items.last(where: { 
+      if case .text(let message) = $0, 
+         message.role == .assistant, 
+         message.messageType == .emergency {
+        return true
+      }
+      return false
+    }) {
+      // Show the cancel chip after the last emergency message
+      return lastEmergencyMsg.id == item.id
+    }
+    
+    return false
+  }
+  
+  /// Determines if the submit report chip should be shown after a message
+  func shouldShowSubmitChip(after item: ChatItem) -> Bool {
+    // Only show submit chip in normal mode when report is ready for submission
+    if isEmergencyFlow || !isReportReadyForSubmission { return false }
+    
+    // Make sure this is a text item from the assistant
+    guard case .text(let msg) = item, msg.role == .assistant else { return false }
+    
+    // Find the last assistant message
+    if let lastAssistantMsg = items.last(where: { 
+      if case .text(let message) = $0, message.role == .assistant {
+        return true
+      }
+      return false
+    }) {
+      // Show the submit chip after the last assistant message
+      return lastAssistantMsg.id == item.id
+    }
+    
+    return false
+  }
 
   func scrollToBottom(_ proxy: ScrollViewProxy) {
     if let lastItem = items.last {
-      proxy.scrollTo(lastItem.id, anchor: .bottom)
+      // Use animation to smooth the scrolling experience
+      withAnimation {
+        // Add a small delay to ensure all elements are rendered before scrolling
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          // Scroll to the last item with a bottom anchor, which provides better visibility
+          proxy.scrollTo(lastItem.id, anchor: .bottom)
+        }
+      }
     }
   }
 
@@ -293,6 +354,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     selectedImages = []
     selectedItems = []
     isEmergencyFlow = false
+    isReportReadyForSubmission = false
   }
 
   /// Cancel the emergency and return to normal incident reporting

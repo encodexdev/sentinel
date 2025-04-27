@@ -5,15 +5,21 @@ struct SuggestionChips: View {
   let suggestions: [String]
   let onSelect: (String) -> Void
   let emergencyOption: Bool
+  let cancelEmergency: Bool
+  let submitReport: Bool
   
-  // Initialize with or without emergency option
+  // Initialize with various options
   init(
     suggestions: [String],
     emergencyOption: Bool = false,
+    cancelEmergency: Bool = false,
+    submitReport: Bool = false,
     onSelect: @escaping (String) -> Void
   ) {
     self.suggestions = suggestions
     self.emergencyOption = emergencyOption
+    self.cancelEmergency = cancelEmergency
+    self.submitReport = submitReport
     self.onSelect = onSelect
   }
 
@@ -40,6 +46,38 @@ struct SuggestionChips: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(Color.red)
+      }
+      
+      // Cancel emergency option if enabled
+      if cancelEmergency {
+        Button {
+          onSelect("Cancel Emergency")
+        } label: {
+          HStack(spacing: 4) {
+            Image(systemName: "xmark.circle.fill")
+              .font(.caption)
+            Text("Cancel Emergency")
+              .fontWeight(.medium)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color.gray)
+      }
+      
+      // Submit report option if enabled
+      if submitReport {
+        Button {
+          onSelect("Submit Report")
+        } label: {
+          HStack(spacing: 4) {
+            Image(systemName: "checkmark.circle.fill")
+              .font(.caption)
+            Text("Submit Report")
+              .fontWeight(.medium)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Color("AccentOrange"))
       }
       
       // Regular suggestion chips
@@ -90,6 +128,36 @@ struct SuggestionChips_Previews: PreviewProvider {
       .background(Color("CardBackground"))
       .previewLayout(.sizeThatFits)
       .previewDisplayName("With Emergency - Light")
+      
+      // Cancel emergency option
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Cancel Emergency Option").font(.headline)
+        SuggestionChips(
+          suggestions: [],
+          cancelEmergency: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Cancel Emergency - Light")
+      
+      // Submit report option
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Submit Report Option").font(.headline)
+        SuggestionChips(
+          suggestions: [],
+          submitReport: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Submit Report - Light")
       
       // Longer list that wraps to multiple lines
       VStack(alignment: .leading, spacing: 8) {
@@ -142,6 +210,38 @@ struct SuggestionChips_Previews: PreviewProvider {
       .preferredColorScheme(.dark)
       .previewDisplayName("With Emergency - Dark")
       
+      // Cancel emergency option (dark)
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Cancel Emergency Option").font(.headline)
+        SuggestionChips(
+          suggestions: [],
+          cancelEmergency: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Cancel Emergency - Dark")
+      
+      // Submit report option (dark)
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Submit Report Option").font(.headline)
+        SuggestionChips(
+          suggestions: [],
+          submitReport: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("CardBackground"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Submit Report - Dark")
+      
       // MARK: Chat Context Previews
       
       // Light mode chat context
@@ -188,6 +288,51 @@ struct SuggestionChips_Previews: PreviewProvider {
       .previewLayout(.sizeThatFits)
       .preferredColorScheme(.dark)
       .previewDisplayName("Chat Context - Dark")
+      
+      // Emergency mode with cancel option
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "emergency1",
+          role: .assistant,
+          content: "Help is on the way: ETA ~5 mins.",
+          timestamp: Date(),
+          messageType: .emergency
+        ))
+        
+        SuggestionChips(
+          suggestions: [],
+          cancelEmergency: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .previewDisplayName("Emergency Cancel - Light")
+      
+      // Emergency mode with cancel option (dark)
+      VStack(spacing: 12) {
+        ChatBubble(message: ChatMessage(
+          id: "emergency1",
+          role: .assistant,
+          content: "Help is on the way: ETA ~5 mins.",
+          timestamp: Date(),
+          messageType: .emergency
+        ))
+        
+        SuggestionChips(
+          suggestions: [],
+          cancelEmergency: true
+        ) { selection in
+          print("Selected: \(selection)")
+        }
+      }
+      .padding()
+      .background(Color("Background"))
+      .previewLayout(.sizeThatFits)
+      .preferredColorScheme(.dark)
+      .previewDisplayName("Emergency Cancel - Dark")
     }
   }
 }
