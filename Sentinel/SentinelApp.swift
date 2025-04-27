@@ -6,8 +6,12 @@ import UIKit
 struct SentinelApp: App {
   // Create a global settings manager
   @StateObject private var settingsManager = SettingsManager()
-
+  // Flag to determine if we're running UI tests
+  private let isRunningUITests: Bool
+  
   init() {
+    // Check if we're running UI tests
+    self.isRunningUITests = ProcessInfo.processInfo.arguments.contains("UI-TESTING")
     configureTabBarAppearance()
   }
 
@@ -18,7 +22,7 @@ struct SentinelApp: App {
       }
       .environmentObject(settingsManager)
       .preferredColorScheme(settingsManager.colorScheme)
-      .id(settingsManager.colorScheme)
+      .withThemeInspector()
     }
   }
 

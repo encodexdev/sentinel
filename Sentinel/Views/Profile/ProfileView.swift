@@ -4,6 +4,7 @@ struct ProfileView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var showingSettings = false
   @StateObject private var vm = ProfileViewModel()
+  @EnvironmentObject private var settingsManager: SettingsManager
 
   // Sample stats data
   private let incidentsCount = 32
@@ -168,6 +169,7 @@ struct ProfileView: View {
           Image(systemName: "gearshape")
             .foregroundColor(Color("PrimaryText"))
         }
+        .accessibilityIdentifier("settingsButton")
       }
     }
     .sheet(isPresented: $showingSettings) {

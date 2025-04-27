@@ -5,10 +5,12 @@ import SwiftUI
 final class SettingsManager: ObservableObject {
   @Published private(set) var settings: Settings
 
-  private let settingsKey = "app.sentinel.settings"
+  private let settingsKey: String
   private var cancellables = Set<AnyCancellable>()
 
-  init() {
+  init(storageKey: String = "app.sentinel.settings") {
+    self.settingsKey = storageKey
+    
     // Load saved settings or fallback to defaults
     if let data = UserDefaults.standard.data(forKey: settingsKey),
       let saved = try? JSONDecoder().decode(Settings.self, from: data)

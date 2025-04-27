@@ -6,12 +6,14 @@ final class SettingsViewModel: ObservableObject {
   @Published var notificationsEnabled: Bool = false
   @Published var locationEnabled: Bool = false
 
-  private var settingsManager: SettingsManager
+  private var settingsManager: SettingsManager?
   private var cancellables = Set<AnyCancellable>()
 
-  init(settingsManager: SettingsManager) {
+  init(settingsManager: SettingsManager?) {
     self.settingsManager = settingsManager
-    bind(to: settingsManager)
+    if let manager = settingsManager {
+      bind(to: manager)
+    }
   }
 
   private func bind(to manager: SettingsManager) {
@@ -34,15 +36,15 @@ final class SettingsViewModel: ObservableObject {
   }
 
   func updateTheme(to style: AppearanceStyle) {
-    settingsManager.setColorScheme(style.toColorScheme())
+    settingsManager?.setColorScheme(style.toColorScheme())
   }
 
   func toggleNotifications(_ enabled: Bool) {
-    settingsManager.setNotificationsEnabled(enabled)
+    settingsManager?.setNotificationsEnabled(enabled)
   }
 
   func toggleLocation(_ enabled: Bool) {
-    settingsManager.setLocationEnabled(enabled)
+    settingsManager?.setLocationEnabled(enabled)
   }
 
   // If the manager instance changes (e.g. when injecting environment object)

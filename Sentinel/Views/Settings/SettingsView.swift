@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject var settingsManager: SettingsManager
-  @StateObject private var viewModel = SettingsViewModel(settingsManager: SettingsManager())
+  @StateObject private var viewModel = SettingsViewModel(settingsManager: nil)
 
   var body: some View {
     NavigationStack {
@@ -44,9 +44,11 @@ struct SettingsView: View {
           ) {
             ForEach(AppearanceStyle.allCases) { style in
               Text(style.rawValue).tag(style)
+                .accessibilityIdentifier(style.rawValue)
             }
           }
           .pickerStyle(.menu)
+          .accessibilityIdentifier("themePicker")
           NavigationLink {
             Text("Language settings would go here")
           } label: {
@@ -106,6 +108,7 @@ struct SettingsView: View {
         }
       }
       .onAppear {
+        // Using the environmentObject settingsManager to ensure theme changes are applied globally
         viewModel.updateSettingsManager(settingsManager)
       }
     }

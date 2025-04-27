@@ -20,11 +20,7 @@ class AnalyticsService {
             print("📊 ANALYTICS EVENT: \(event)")
         }
         #else
-        // In production, you would connect to a real analytics service like:
-        // - Firebase Analytics
-        // - Mixpanel
-        // - Amplitude
-        // - Your own backend service
+        // In production, we would connect to a real analytics service like Firebase Analytics
         #endif
     }
     
