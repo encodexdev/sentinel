@@ -2,26 +2,75 @@ import SwiftUI
 
 // MARK: - ImageBubble
 
-/// A styled bubble for image upload messages.
+/// A styled bubble for image upload messages that shows the actual images.
 struct ImageBubble: View, Identifiable {
     // MARK: - Properties
     
-    let id = UUID().uuidString
-    let count: Int
+    var id: String
+    var images: [UIImage]
+    var caption: String
+    
+    init(images: [UIImage], caption: String = "", id: String = UUID().uuidString) {
+        self.images = images
+        self.caption = caption
+        self.id = id
+    }
+    
+    // Support legacy constructor for preview purposes
+    init(count: Int) {
+        self.id = UUID().uuidString
+        self.caption = ""
+        
+        var placeholders: [UIImage] = []
+        if let placeholderImage = UIImage(systemName: "photo.fill") {
+            for _ in 0..<count {
+                placeholders.append(placeholderImage)
+            }
+        }
+        self.images = placeholders
+    }
 
     // MARK: - Body
     
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Image(systemName: "photo.on.rectangle.angled")
-                .font(.title2)
-                .foregroundColor(.white)
-
-            Text("Uploaded \(count) image\(count == 1 ? "" : "s")")
-                .font(.body)
-                .foregroundColor(.white)
-
-            Spacer()
+        VStack(alignment: .leading, spacing: 8) {
+            // Add caption if present
+            if !caption.isEmpty {
+                Text(caption)
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 4)
+            }
+            
+            // Image grid layout
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 4),
+                    GridItem(.flexible(), spacing: 4)
+                ],
+                spacing: 4
+            ) {
+                ForEach(0..<images.count, id: \.self) { index in
+                    Image(uiImage: images[index])
+                        .resizable()
+                        .scaledToFill()
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .aspectRatio(1, contentMode: .fill)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                }
+            }
+            
+            // Add image count indicator
+            HStack {
+                Spacer()
+                Text("\(images.count) image\(images.count == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+            }
         }
         .padding()
         .background(Color.blue.opacity(0.8))

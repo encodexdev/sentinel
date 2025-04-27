@@ -10,4 +10,7 @@ enum MessageType: String, Codable {
     
     /// Message containing image(s)
     case image
+    
+    /// Report message containing incident details
+    case report
 }

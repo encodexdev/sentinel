@@ -55,27 +55,65 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   }
 
   func sendMessage() {
-    guard !inputText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+    let trimmedText = inputText.trimmingCharacters(in: .whitespaces)
+    let hasText = !trimmedText.isEmpty
+    let hasImages = !selectedImages.isEmpty
+    
+    // Return if there's nothing to send
+    guard hasText || hasImages else { return }
 
-    // Add user message
-    let userMsg = ChatMessage(
-      id: UUID().uuidString, role: .user, content: inputText, timestamp: Date(), messageType: .chat)
-    items.append(.text(userMsg))
-    let messageText = inputText  // Store the message text before clearing it
+    // If there's text, add user message first
+    if hasText {
+      let userMsg = ChatMessage(
+        id: UUID().uuidString, role: .user, content: inputText, timestamp: Date(), messageType: .chat)
+      items.append(.text(userMsg))
+    }
+    
+    // If there are images, add them as image message
+    if hasImages {
+      // Create a copy of the current images
+      let imagesToSend = selectedImages
+      
+      // Add the image message with the current caption (input text)
+      items.append(.image(images: imagesToSend, caption: trimmedText))
+      
+      // Log image upload event
+      logAnalyticsEvent(
+        "image_uploaded",
+        details: [
+          "count": "\(imagesToSend.count)",
+          "has_caption": "\(hasText)",
+          "emergency_mode": "\(self.isEmergencyFlow)",
+        ])
+        
+      // Clear the selected images after sending
+      selectedImages = []
+      selectedItems = []
+      
+      // If in emergency mode, send emergency-specific response for images
+      if isEmergencyFlow {
+        sendEmergencyResponseToImageUpload(imageCount: imagesToSend.count)
+      }
+    }
+    
+    // Clear the input text
     inputText = ""
 
-    if isEmergencyFlow {
-      // Emergency mode message handling
-      sendEmergencyResponseToUserMessage()
-    } else {
-      // Normal mode message handling
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-        guard let self = self else { return }
-        let response = ChatMessage(
-          id: UUID().uuidString, role: .assistant,
-          content: "I've recorded your report. Is there anything else you'd like to add?",
-          timestamp: Date(), messageType: .chat)
-        self.items.append(.text(response))
+    // Send appropriate response based on flow type (if not already handled by image response)
+    if !hasImages {
+      if isEmergencyFlow {
+        // Emergency mode message handling
+        sendEmergencyResponseToUserMessage()
+      } else {
+        // Normal mode message handling
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+          guard let self = self else { return }
+          let response = ChatMessage(
+            id: UUID().uuidString, role: .assistant,
+            content: "I've recorded your report. Is there anything else you'd like to add?",
+            timestamp: Date(), messageType: .chat)
+          self.items.append(.text(response))
+        }
       }
     }
   }
@@ -177,26 +215,24 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       await MainActor.run {
         self.selectedImages = loadedImages
         self.isLoadingImages = false
-
-        // Create image message if images were loaded
-        if !loadedImages.isEmpty {
-          let _ = ChatMessage(imageUploadCount: loadedImages.count)
-          self.items.append(.image(count: loadedImages.count))
-
-          // Log image upload event
-          self.logAnalyticsEvent(
-            "image_uploaded",
-            details: [
-              "count": "\(loadedImages.count)",
-              "emergency_mode": "\(self.isEmergencyFlow)",
-            ])
-
-          // If in emergency mode, send emergency-specific response for images
-          if self.isEmergencyFlow {
-            self.sendEmergencyResponseToImageUpload(imageCount: loadedImages.count)
-          }
-        }
+        
+        // Log image attachment event
+        self.logAnalyticsEvent(
+          "image_attached",
+          details: [
+            "count": "\(loadedImages.count)",
+            "emergency_mode": "\(self.isEmergencyFlow)",
+          ])
+        
+        // Images will be sent when user hits send button
       }
+    }
+  }
+  
+  /// Removes an image at the specified index from the selected images
+  func removeImage(at index: Int) {
+    if index >= 0 && index < selectedImages.count {
+      selectedImages.remove(at: index)
     }
   }
 
@@ -280,10 +316,110 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     }
   }
 
-  func submitReport() -> Bool {
-    // Package chat transcript and images into Report model
-    // For now, just simulate and return success
+  /// Creates a report from the chat conversation
+  func createReportFromChat() {
+    // Extract information from the conversation
+    var incidentType = "Incident"
+    var userComments = [String]()
+    var images = [UIImage]()
+    var description = ""
+    var location = ""
+    var timestamp = Date()
+    
+    // Find the user's incident type selection - usually the first user message
+    for item in items {
+      if case .text(let msg) = item, msg.role == .user {
+        incidentType = msg.content
+        // Use timestamp of the first user message
+        timestamp = msg.timestamp
+        break
+      }
+    }
+    
+    // Collect other information
+    for item in items {
+      switch item {
+      case .text(let msg) where msg.role == .user:
+        userComments.append(msg.content)
+        
+        // Try to extract location from user messages
+        if msg.content.lowercased().contains("at ") || 
+           msg.content.lowercased().contains("in ") ||
+           msg.content.lowercased().contains("location") {
+          if location.isEmpty {
+            // Simple heuristic - location might be mentioned after "in" or "at"
+            if let locationIndex = msg.content.range(of: " in ", options: .caseInsensitive) {
+              location = String(msg.content[locationIndex.upperBound...])
+            } else if let locationIndex = msg.content.range(of: " at ", options: .caseInsensitive) {
+              location = String(msg.content[locationIndex.upperBound...])
+            }
+          }
+        }
+        
+        // Use second user message as description if not already set
+        if description.isEmpty && msg.content != incidentType {
+          description = msg.content
+        }
+        
+      case .image(let imgs, _, _):
+        images.append(contentsOf: imgs)
+      default:
+        break
+      }
+    }
+    
+    // Create a default title based on the incident type
+    let title = "\(incidentType) Incident"
+    
+    // Create the report data
+    let report = ReportData(
+      title: title,
+      description: description,
+      location: location.isEmpty ? "Unknown Location" : location,
+      timestamp: timestamp,
+      status: .open,
+      userComments: userComments,
+      images: images
+    )
+    
+    // Add message to introduce the report
+    let introMessage = ChatMessage(
+      id: UUID().uuidString,
+      role: .assistant,
+      content: "I've compiled an incident report based on your information:",
+      timestamp: Date(),
+      messageType: .chat
+    )
+    
+    // Add the message and report to the chat
+    items.append(.text(introMessage))
+    items.append(.report(report))
+    
+    // Log report creation
+    logAnalyticsEvent(
+      "report_created",
+      details: [
+        "type": "standard",
+        "incident_type": incidentType
+      ]
+    )
+  }
 
+  func submitReport() -> Bool {
+    // First, create a report if one doesn't already exist
+    if !items.contains(where: { if case .report = $0 { return true } else { return false } }) {
+      createReportFromChat()
+    }
+    
+    // Find the latest report in the conversation
+    var incidentReport: ReportData? = nil
+    for item in items.reversed() {
+      if case .report(let report, _) = item {
+        incidentReport = report
+        break
+      }
+    }
+    
     // Add a success message to the chat
     let successMessage = ChatMessage(
       id: UUID().uuidString,
@@ -294,28 +430,33 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     )
     items.append(.text(successMessage))
       
-      
-      // Second message - Request details (short delay)
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-        guard let self = self else { return }
-        let secondResponse = ChatMessage(
-          id: UUID().uuidString,
-          role: .assistant,
-          content: "Redirecting to the incidents page...",
-          timestamp: Date(),
-          messageType: .chat
-        )
-        self.items.append(.text(secondResponse))
-      }
+    // Second message - Request details (short delay)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      guard let self = self else { return }
+      let secondResponse = ChatMessage(
+        id: UUID().uuidString,
+        role: .assistant,
+        content: "Redirecting to the incidents page...",
+        timestamp: Date(),
+        messageType: .chat
+      )
+      self.items.append(.text(secondResponse))
+    }
 
-    // Log submission event
-    logAnalyticsEvent(
-      "report_submitted",
-      details: [
-        "message_count": "\(items.count)",
-        "image_count": "\(selectedImages.count)",
-        "emergency": "\(isEmergencyFlow)",
-      ])
+    // Log submission event with report details
+    var details: [String: String] = [
+      "message_count": "\(items.count)",
+      "image_count": "\(selectedImages.count)",
+      "emergency": "\(isEmergencyFlow)",
+    ]
+    
+    if let report = incidentReport {
+      details["title"] = report.title
+      details["status"] = report.status.rawValue
+      details["location"] = report.location
+    }
+    
+    logAnalyticsEvent("report_submitted", details: details)
 
     // Navigate to the incidents tab after a short delay
     // to allow the user to see the success message
@@ -368,6 +509,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       details: [
         "message_count": "\(items.count)"
       ])
+      
+    // Create a report from the emergency
+    createReportFromEmergency()
 
     // Add message about emergency being recorded
     let response = ChatMessage(
@@ -379,6 +523,78 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       messageType: .chat
     )
     items.append(.text(response))
+  }
+  
+  /// Creates a report from an emergency incident
+  private func createReportFromEmergency() {
+    // First, extract emergency level from items
+    var level = "Security"
+    var userComments = [String]()
+    var images = [UIImage]()
+    var description = ""
+    var location = ""
+    var timestamp = Date()
+    
+    // Extract information from the conversation
+    for item in items {
+      switch item {
+      case .emergency(let emergencyLevel, _):
+        level = emergencyLevel
+      case .text(let msg) where msg.role == .user:
+        userComments.append(msg.content)
+        // Try to use first user message as description if not already set
+        if description.isEmpty {
+          description = msg.content
+        }
+        // Use timestamp of the first user message
+        if timestamp == Date() {
+          timestamp = msg.timestamp
+        }
+      case .image(let imgs, _, _):
+        images.append(contentsOf: imgs)
+      default:
+        break
+      }
+    }
+    
+    // Create a default title based on the emergency type
+    let title = "\(level) Emergency Incident"
+    
+    // Create the report data
+    let report = ReportData(
+      title: title,
+      description: description,
+      location: location.isEmpty ? "Unknown Location" : location,
+      timestamp: timestamp,
+      status: .inProgress,
+      userComments: userComments,
+      images: images
+    )
+    
+    // Add message to introduce the report
+    let introMessage = ChatMessage(
+      id: UUID().uuidString,
+      role: .assistant,
+      content: "I've compiled an incident report based on your emergency:",
+      timestamp: Date(),
+      messageType: .chat
+    )
+    
+    // Add the message and report to the chat
+    items.append(.text(introMessage))
+    items.append(.report(report))
+    
+    // Set flag to indicate report is ready for further updates
+    isReportReadyForSubmission = true
+    
+    // Log report creation
+    logAnalyticsEvent(
+      "report_created",
+      details: [
+        "type": "emergency",
+        "level": level
+      ]
+    )
   }
 
   // Analytics logging

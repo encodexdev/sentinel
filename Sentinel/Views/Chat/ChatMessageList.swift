@@ -66,9 +66,14 @@ struct ChatMessageList: View {
               EmergencyBubble(level: level)
                 .id(item.id)
                 
-            case .image(let count, _):
-              // MARK: Image Upload Indicator
-              ImageBubble(count: count)
+            case .image(let images, _, let caption):
+              // MARK: Image Messages with Preview
+              ImageBubble(images: images, caption: caption)
+                .id(item.id)
+                
+            case .report(let reportData, _):
+              // MARK: Report Summary
+              ReportBubble(report: reportData)
                 .id(item.id)
             }
           }
@@ -125,7 +130,7 @@ struct ChatMessageList_Previews: PreviewProvider {
         timestamp: Date().addingTimeInterval(-180),
         messageType: .chat
       )),
-      .image(count: 1, id: "5"),
+      .image(images: [UIImage(systemName: "photo.fill")!], id: "5", caption: "Here's a photo of the suspicious person"),
       .text(ChatMessage(
         id: "6",
         role: .assistant,
@@ -188,7 +193,7 @@ struct ChatMessageList_Previews: PreviewProvider {
         timestamp: Date().addingTimeInterval(-160),
         messageType: .emergency
       )),
-      .image(count: 2, id: "8"),
+      .image(images: [UIImage(systemName: "photo.fill")!, UIImage(systemName: "photo.fill")!], id: "8", caption: "Photos of the intruder"),
       .text(ChatMessage(
         id: "9",
         role: .assistant,
@@ -298,6 +303,89 @@ struct ChatMessageList_Previews: PreviewProvider {
     return vm
   }
   
+  // Conversation with report displayed
+  static var reportViewModel: ChatViewModel {
+    let vm = ChatViewModel()
+    
+    // Add sample messages for a report conversation
+    vm.items = [
+      .text(ChatMessage(
+        id: "1",
+        role: .assistant,
+        content: "What type of incident would you like to report?",
+        timestamp: Date().addingTimeInterval(-300),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "2",
+        role: .user,
+        content: "Suspicious Person",
+        timestamp: Date().addingTimeInterval(-240),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "3",
+        role: .assistant,
+        content: "Thanks for reporting a Suspicious Person incident. Can you describe what happened?",
+        timestamp: Date().addingTimeInterval(-220),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "4",
+        role: .user,
+        content: "Someone was trying car door handles in the parking lot",
+        timestamp: Date().addingTimeInterval(-180),
+        messageType: .chat
+      )),
+      .image(images: [UIImage(systemName: "photo.fill")!], id: "5", caption: "Here's a photo of the person"),
+      .text(ChatMessage(
+        id: "6",
+        role: .assistant,
+        content: "Where did this happen?",
+        timestamp: Date().addingTimeInterval(-140),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "7",
+        role: .user,
+        content: "West Parking Garage, Level 2",
+        timestamp: Date().addingTimeInterval(-120),
+        messageType: .chat
+      )),
+      .text(ChatMessage(
+        id: "8",
+        role: .assistant,
+        content: "I've compiled your report:",
+        timestamp: Date().addingTimeInterval(-100),
+        messageType: .chat
+      )),
+      .report(
+        ReportData(
+          title: "Suspicious Person in Parking Garage",
+          description: "Individual attempting to open car doors on Level 2",
+          location: "West Parking Garage",
+          timestamp: Date().addingTimeInterval(-180),
+          status: .inProgress,
+          userComments: [
+            "Someone was trying car door handles in the parking lot",
+            "West Parking Garage, Level 2"
+          ],
+          images: [UIImage(systemName: "photo.fill")!]
+        ),
+        id: "9"
+      ),
+      .text(ChatMessage(
+        id: "10",
+        role: .assistant,
+        content: "This report has been filed. Security personnel will investigate. Would you like to add any additional details?",
+        timestamp: Date().addingTimeInterval(-80),
+        messageType: .chat
+      ))
+    ]
+    
+    return vm
+  }
+  
   static var previews: some View {
     Group {
       // Standard chat - Light mode
@@ -338,6 +426,19 @@ struct ChatMessageList_Previews: PreviewProvider {
         .background(Color("Background"))
         .preferredColorScheme(.dark)
         .previewDisplayName("Emergency Cancel - Dark")
+        
+      // Chat with report displayed - Light mode
+      ChatMessageList()
+        .environmentObject(reportViewModel)
+        .background(Color("Background"))
+        .previewDisplayName("With Report - Light")
+        
+      // Chat with report displayed - Dark mode
+      ChatMessageList()
+        .environmentObject(reportViewModel)
+        .background(Color("Background"))
+        .preferredColorScheme(.dark)
+        .previewDisplayName("With Report - Dark")
         
       // Report ready for submission - Light mode
       ChatMessageList()

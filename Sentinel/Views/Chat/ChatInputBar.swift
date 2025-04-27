@@ -12,15 +12,34 @@ struct ChatInputBar: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(0..<vm.selectedImages.count, id: \.self) { index in
-                            Image(uiImage: vm.selectedImages[index])
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 60, height: 60)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color("DividerLine"), lineWidth: 1)
-                                )
+                            ZStack(alignment: .topTrailing) {
+                                // Image preview
+                                Image(uiImage: vm.selectedImages[index])
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color("DividerLine"), lineWidth: 1)
+                                    )
+                                
+                                // Delete button
+                                Button {
+                                    vm.removeImage(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white)
+                                        .background(
+                                            Circle()
+                                                .fill(Color.black.opacity(0.6))
+                                                .frame(width: 18, height: 18)
+                                        )
+                                        .padding(2)
+                                }
+                                .offset(x: 3, y: -3)
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -67,9 +86,13 @@ struct ChatInputBar: View {
                     Image(systemName: "paperplane.fill")
                         .rotationEffect(.degrees(45))
                         .font(.title2)
-                        .foregroundColor(Color("AccentBlue"))
+                        .foregroundColor(
+                            (!vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty || !vm.selectedImages.isEmpty) 
+                            ? Color("AccentBlue") 
+                            : Color("AccentBlue").opacity(0.5)
+                        )
                 }
-                .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty && vm.selectedImages.isEmpty)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
