@@ -1,6 +1,6 @@
-
 import SwiftUI
 import MapKit
+import Combine
 
 class MapViewModel: ObservableObject {
     // Camera position for SwiftUI Map
@@ -9,8 +9,17 @@ class MapViewModel: ObservableObject {
     @Published var incidents: [IncidentAnnotation] = []
     // Animation delays by incident ID
     @Published var animationDelays: [String: Double] = [:]
+    // Selected incident for toast/navigation
+    @Published var selectedIncident: IncidentAnnotation?
+    // Show the incident acceptance toast
+    @Published var showAcceptToast = false
+    
+    // Reference to the navigation manager
+    private let navigationManager: NavigationManager
+    // Cancellables for subscriptions
+    private var cancellables = Set<AnyCancellable>()
 
-    init() {
+    init(navigationManager: NavigationManager = NavigationManager()) {
         // Initialize position first to avoid using self before initialization
         let defaultRegion = MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
@@ -18,8 +27,25 @@ class MapViewModel: ObservableObject {
         )
         position = .region(defaultRegion)
         
+        // Store navigation manager
+        self.navigationManager = navigationManager
+        
         // Then proceed with generating incidents
         generateIncidents()
+        
+        // Set up subscriptions for navigation updates
+        setupNavigationSubscriptions()
+    }
+    
+    private func setupNavigationSubscriptions() {
+        // Update camera position when navigation starts
+        navigationManager.$activeNavigation
+            .compactMap { $0 }
+            .sink { [weak self] navigation in
+                // Center the map on the route when navigation starts
+                self?.centerOnRoute()
+            }
+            .store(in: &cancellables)
     }
     
     private func generateIncidents() {
@@ -188,5 +214,67 @@ class MapViewModel: ObservableObject {
         withAnimation {
             position = .region(region)
         }
+    }
+    
+    /// Centers the map on the active navigation route
+    func centerOnRoute() {
+        let route = navigationManager.routePoints
+        guard !route.isEmpty else { return }
+        
+        // Calculate a region that encompasses the route
+        let lats = route.map(\.latitude)
+        let lons = route.map(\.longitude)
+        
+        guard let maxLat = lats.max(),
+              let minLat = lats.min(),
+              let maxLon = lons.max(),
+              let minLon = lons.min() else { return }
+        
+        // Add padding
+        let latDelta = (maxLat - minLat) * 1.3
+        let lonDelta = (maxLon - minLon) * 1.3
+        
+        let center = CLLocationCoordinate2D(
+            latitude: (maxLat + minLat) / 2,
+            longitude: (maxLon + minLon) / 2
+        )
+        
+        let span = MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)
+        let region = MKCoordinateRegion(center: center, span: span)
+        
+        withAnimation {
+            position = .region(region)
+        }
+    }
+    
+    /// Accepts an incident and starts navigation
+    func acceptIncident(_ incident: IncidentAnnotation) {
+        navigationManager.startNavigation(to: incident)
+        showAcceptToast = false
+    }
+    
+    /// Cancels the active navigation
+    func cancelNavigation() {
+        navigationManager.cancelNavigation()
+    }
+    
+    /// Checks if there's an active navigation
+    var isNavigating: Bool {
+        navigationManager.isNavigating
+    }
+    
+    /// Gets the active navigation info
+    var activeNavigation: NavigationInfo? {
+        navigationManager.activeNavigation
+    }
+    
+    /// Gets the navigation progress
+    var navigationProgress: Double {
+        navigationManager.navigationProgress
+    }
+    
+    /// Gets the route points for the polyline
+    var routePoints: [CLLocationCoordinate2D] {
+        navigationManager.routePoints
     }
 }

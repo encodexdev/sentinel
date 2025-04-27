@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import LucideIcons
 
 struct AcceptToast: View {
   let incident: IncidentAnnotation
@@ -44,13 +45,20 @@ struct AcceptToast: View {
       
       // Accept button
       Button(action: accept) {
-        Text("ACCEPT")
-          .fontWeight(.bold)
-          .frame(maxWidth: .infinity)
-          .padding()
-          .background(Color.accentColor)
-          .foregroundColor(.white)
-          .cornerRadius(10)
+        HStack {
+          Image(uiImage: Lucide.navigation.withRenderingMode(.alwaysTemplate))
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 20, height: 20)
+          
+          Text("ACCEPT & NAVIGATE")
+            .fontWeight(.bold)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.accentColor)
+        .foregroundColor(.white)
+        .cornerRadius(10)
       }
     }
     .padding()

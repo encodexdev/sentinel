@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IncidentsView: View {
-    @StateObject private var vm = HomeViewModel()
+    @StateObject private var viewModel = HomeViewModel()
     @State private var selectedFilter: IncidentFilter = .all
     
     var body: some View {
@@ -23,11 +23,11 @@ struct IncidentsView: View {
                         if selectedFilter == .mine || selectedFilter == .all {
                             SectionCard(title: "My Incidents") {
                                 VStack(spacing: 8) {
-                                    ForEach(vm.myIncidents) { incident in
+                                    ForEach(viewModel.myIncidents) { incident in
                                         IncidentCard(incident: incident)
                                     }
                                     
-                                    if vm.myIncidents.isEmpty {
+                                    if viewModel.myIncidents.isEmpty {
                                         Text("No incidents assigned to you")
                                             .font(.subheadline)
                                             .foregroundColor(Color("SecondaryText"))
@@ -42,11 +42,11 @@ struct IncidentsView: View {
                         if selectedFilter == .team || selectedFilter == .all {
                             SectionCard(title: "Team Incidents") {
                                 VStack(spacing: 8) {
-                                    ForEach(vm.teamIncidents) { incident in
+                                    ForEach(viewModel.teamIncidents) { incident in
                                         IncidentCard(incident: incident)
                                     }
                                     
-                                    if vm.teamIncidents.isEmpty {
+                                    if viewModel.teamIncidents.isEmpty {
                                         Text("No team incidents reported")
                                             .font(.subheadline)
                                             .foregroundColor(Color("SecondaryText"))
@@ -59,7 +59,7 @@ struct IncidentsView: View {
                         
                         // Status-based filtering
                         if selectedFilter == .open || selectedFilter == .inProgress || selectedFilter == .resolved {
-                            let filteredIncidents = (vm.myIncidents + vm.teamIncidents).filter { 
+                            let filteredIncidents = (viewModel.myIncidents + viewModel.teamIncidents).filter { 
                                 switch selectedFilter {
                                 case .open: return $0.status == .open
                                 case .inProgress: return $0.status == .inProgress

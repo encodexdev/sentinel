@@ -2,7 +2,7 @@ import MapKit
 import SwiftUI
 
 struct HomeView: View {
-  @StateObject private var vm = HomeViewModel()
+  @StateObject private var viewModel = HomeViewModel()
   @State private var position = MapCameraPosition.region(
     MKCoordinateRegion(
       center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
@@ -15,9 +15,15 @@ struct HomeView: View {
     let parts = TestData.user.fullName.split(separator: " ")
     return parts.first.map(String.init) ?? TestData.user.fullName
   }
-
-  @State private var showingChatView = false
-  @State private var showingMapView = false
+  
+  private var mapStyleConfig: MapStyle {
+    .standard(
+      elevation: .automatic,
+      emphasis: .muted,
+      pointsOfInterest: .excludingAll,
+      showsTraffic: false
+    )
+  }
   
   var body: some View {
     NavigationStack {
@@ -36,7 +42,7 @@ struct HomeView: View {
 
           // MARK: Report Button
           Button {
-            showingChatView = true
+            viewModel.openReportView()
           } label: {
             Label("Report New Incident", systemImage: "exclamationmark.bubble")
               .font(.headline)
@@ -50,24 +56,32 @@ struct HomeView: View {
           .padding(.vertical, 8)
 
           // MARK: Map Overview
-          SectionCard(title: "Map Overview") {
+          SectionCard(title: "Personnel Map") {
             ZStack {
               Map(position: $position) {
                 UserAnnotation()
               }
-                .frame(height: 180)
-                .cornerRadius(12)
+              .mapStyle(mapStyleConfig)
+              .frame(height: 180)
+              .cornerRadius(12)
+              .contentShape(Rectangle())
+              .onTapGesture {
+                viewModel.openMapView()
+              }
 
               Button {
-                showingMapView = true
+                viewModel.openMapView()
               } label: {
                 Text("Open Map")
-                  .padding(.all, 8)
-                  .background(.ultraThinMaterial)
+                  .font(.subheadline)
+                  .fontWeight(.medium)
+                  .padding(.vertical, 8)
+                  .padding(.horizontal, 16)
+                  .background(Color.accentColor)
+                  .foregroundColor(.white)
                   .cornerRadius(8)
-                  .shadow(radius: 5)
               }
-              .buttonStyle(.borderedProminent)
+              .shadow(radius: 2)
             }
           }
           .padding(.horizontal, 16)  // Added vertical padding
@@ -77,11 +91,11 @@ struct HomeView: View {
             title: "My Incidents",
             actionTitle: "View all",
             action: {
-              // TODO: handle "View all"
+              viewModel.openIncidentsView()
             }
           ) {
             VStack(spacing: 8) {
-              ForEach(vm.myIncidents) { incident in
+              ForEach(viewModel.myIncidents) { incident in
                 IncidentCard(incident: incident)
               }
             }
@@ -91,7 +105,7 @@ struct HomeView: View {
           // MARK: Team Incidents Section
           SectionCard(title: "Team Incidents") {
             VStack(spacing: 8) {
-              ForEach(vm.teamIncidents) { incident in
+              ForEach(viewModel.teamIncidents) { incident in
                 IncidentCard(incident: incident)
               }
             }
@@ -110,13 +124,12 @@ struct HomeView: View {
             .padding(.bottom, 8)  // Add padding below the profile icon
         }
       }
-      .sheet(isPresented: $showingMapView) {
-        MapView()
-      }
-      .fullScreenCover(isPresented: $showingChatView) {
-        ChatView()
-      }
     }
   }
 }
 
+struct HomeView_Previews: PreviewProvider {
+  static var previews: some View {
+    HomeView()
+  }
+}
