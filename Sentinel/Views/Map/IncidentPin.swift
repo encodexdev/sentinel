@@ -57,7 +57,7 @@ struct IncidentPin: View {
         }
         .onChange(of: dropped) {
             // animate drop & fade-in when `dropped` flips to true
-            withAnimation(.easeOut(duration: 1.0)) {
+            withAnimation(.easeOut(duration: 0.8)) {
                 yOffset = 0
                 pinOpacity = 1
             }

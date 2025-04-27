@@ -23,7 +23,7 @@ struct AcceptToast: View {
     self.onAccept = onAccept
     self.onTimeout = onTimeout
     // Pre-calculate the fare so it's included in the initial animation
-    _fare = State(initialValue: Double.random(in: 30...80))
+    _fare = State(initialValue: Double.random(in: 30...60))
   }
 
   // MARK: - Body
@@ -36,8 +36,10 @@ struct AcceptToast: View {
         .foregroundColor(.gray.opacity(0.5))
 
       // MARK: Incident Details
-      Text("New Security Incident")
+      Text("Emergency Detected Nearby")
         .font(.headline)
+        .foregroundColor(.red)
+        
       Text("Type: \(incident.title.isEmpty ? "Unknown" : incident.title)")
         .font(.subheadline)
 
@@ -55,6 +57,7 @@ struct AcceptToast: View {
       // MARK: Progress Bar
       ProgressView(value: sliderValue, total: 1.0)
         .padding(.vertical, 4)
+        .tint(.accentOrange)
 
       // MARK: Accept Button
       Button(action: accept) {
@@ -64,12 +67,12 @@ struct AcceptToast: View {
             .aspectRatio(contentMode: .fit)
             .frame(width: 20, height: 20)
 
-          Text("ACCEPT & NAVIGATE")
+          Text("ACCEPT & RESPOND")
             .fontWeight(.bold)
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.accentColor)
+        .background(.accentOrange)
         .foregroundColor(.white)
         .cornerRadius(10)
       }
@@ -106,4 +109,29 @@ struct AcceptToast: View {
     timer?.invalidate()
     onAccept()
   }
+}
+
+// MARK: - Previews
+
+#Preview {
+  ZStack {
+    // Background to simulate map
+    Color.gray.opacity(0.2)
+    
+    VStack(spacing: 30) {
+      // With default timer values
+      AcceptToast(
+        incident: IncidentAnnotation(
+          id: "preview-123",
+          title: "Shoplifting",
+          coordinate: CLLocationCoordinate2D(latitude: 37.785, longitude: -122.405),
+          status: .open
+        ),
+        onAccept: {},
+        onTimeout: {}
+      )
+    }
+    .padding(.vertical, 20)
+  }
+  .ignoresSafeArea()
 }
