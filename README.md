@@ -34,8 +34,6 @@
 
 2. **Configure your API Key**
 
-   Sentinel uses a secure approach to manage your OpenAI API key with multiple fallback methods:
-
    **Option 1: Using Xcode Configuration (Build-time Injection)**
 
    ```bash
@@ -52,7 +50,7 @@
    ```
 
    **IMPORTANT:** After updating the Secrets.xcconfig file, you must:
-   
+
    1. Clean the build folder (Product → Clean Build Folder)
    2. Close and reopen Xcode
    3. Build and run the project
@@ -64,18 +62,8 @@
    - In Xcode, go to Product → Scheme → Edit Scheme...
    - Under the Run phase, expand Arguments → Environment Variables
    - Add `OPENAI_API_KEY` with your key as the value
-   
+
    When the app runs with this environment variable, it will automatically store the key securely in the iOS Keychain for future use.
-
-   **Option 3: iOS Keychain Storage (Runtime)**
-
-   The most secure option - once you've run the app with a valid API key:
-   
-   1. The key is securely stored in the iOS Keychain
-   2. Future app launches automatically retrieve it
-   3. No need to reconfigure the key unless it changes
-   
-   > ⚠️ **Security Note:** Your API key is stored securely in the iOS Keychain and never committed to version control.
 
 3. **Open in Xcode**
 

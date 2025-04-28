@@ -37,6 +37,9 @@ struct SentinelApp: App {
   }
   
   private func debugApiKeyConfiguration() {
+    // Import the environment provider module to access the provider
+    _ = EnvironmentProvider.shared
+    
     // Try to initialize OpenAIService with available API key
     do {
       let service = try OpenAIService()

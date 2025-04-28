@@ -51,14 +51,16 @@ class OpenAIService {
       return
     }
     
+    let provider = EnvironmentProvider.shared
+    
     // Get API key from secure storage
-    if let secureKey = Environment.secureValue(for: .openAIApiKey) {
+    if let secureKey = provider.getSecureValue(for: .openAIApiKey) {
       self.apiKey = secureKey
       return
     }
     
     // Fall back to Info.plist
-    if let bundleKey = Environment.value(for: .openAIApiKey) {
+    if let bundleKey = provider.getValue(for: .openAIApiKey) {
       self.apiKey = bundleKey
       return
     }
@@ -69,7 +71,7 @@ class OpenAIService {
       self.apiKey = envKey
       
       // Store in keychain for future use
-      KeychainManager.store(value: envKey, key: Environment.Keys.openAIApiKey.rawValue)
+      _ = provider.storeInKeychain(value: envKey, key: "OPENAI_API_KEY")
       return
     }
     
