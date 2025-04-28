@@ -19,15 +19,26 @@
   </table>
 </div>
 
-#### Videos to Add:
+### AI-Powered Chat Interface
 
-1. **`chat_normal_flow.mp4`** - Show the standard incident reporting flow:
+Experience the intuitive AI-guided incident reporting with interactive responses and smart assistance.
 
-2. **`chat_emergency_flow.mp4`** - Demonstrate emergency response workflow:
-
-3. **`chat_image_upload.mp4`** - Show image attachment functionality:
-
-4. **`chat_report_generation.mp4`** - Demonstrate report creation:
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Regular Reporting Flow</b></td>
+      <td align="center"><b>Emergency Response Flow</b></td>
+    </tr>
+    <tr>
+      <td><video src="docs/demo/chat_regular_flow_light.MP4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
+      <td><video src="docs/demo/chat_emergency_flow_dark.MP4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
+    </tr>
+    <tr>
+      <td>Standard incident reporting with AI assistance</td>
+      <td>Priority emergency response with real-time updates</td>
+    </tr>
+  </table>
+</div>
 
 ### Smart Incident Reporting
 

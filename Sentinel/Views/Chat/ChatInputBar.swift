@@ -52,9 +52,17 @@ struct ChatInputBar: View {
                 // Emergency button - only show in normal mode
                 if !vm.isEmergencyFlow {
                     Button {
-                        // Defer to the next run loop to avoid publishing during view updates
+                        // Immediately disable button by setting processing flag first
                         DispatchQueue.main.async {
-                            vm.showEmergencyOptions = true
+                            // Set processing flag to prevent multiple taps
+                            vm.isProcessingAIResponse = true
+                            
+                            // Then show emergency options after a short delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                // In the case we don't actually send a message, we need to 
+                                // be able to reset the processing flag when the dialog is dismissed
+                                vm.showEmergencyOptions = true
+                            }
                         }
                     } label: {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -87,9 +95,17 @@ struct ChatInputBar: View {
                 
                 // Send button
                 Button {
-                    // Defer to the next run loop to avoid publishing during view updates
+                    // Immediately disable the button by updating isProcessing first
+                    // This prevents double-taps and UI state conflicts
                     DispatchQueue.main.async {
-                        vm.sendMessage()
+                        // Set processing flag first to prevent multiple taps
+                        vm.isProcessingAIResponse = true
+                        
+                        // Then schedule actual message sending after a short delay
+                        // to ensure the UI updates with the disabled state first
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            vm.sendMessage()
+                        }
                     }
                 } label: {
                     Image(systemName: "paperplane.fill")
@@ -101,6 +117,7 @@ struct ChatInputBar: View {
                             : Color("AccentBlue").opacity(0.5)
                         )
                 }
+                // Only check content, not isProcessingAIResponse, since we set that immediately on tap
                 .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty && vm.selectedImages.isEmpty || vm.isProcessingAIResponse)
             }
             .padding(.horizontal)

@@ -94,7 +94,10 @@ struct ChatContent: View {
       NotificationCenter.default.addObserver(forName: Notification.Name("ShowSubmitConfirmation"), 
                                             object: nil, 
                                             queue: .main) { _ in
-        showSubmitConfirmation.wrappedValue = true
+        // Add a slight delay to avoid view update conflicts
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          showSubmitConfirmation.wrappedValue = true
+        }
       }
     }
   }
@@ -166,26 +169,55 @@ extension View {
         "Request Emergency Assistance",
         isPresented: Binding(
           get: { viewModel.showEmergencyOptions },
-          set: { viewModel.showEmergencyOptions = $0 }
+          set: { 
+            viewModel.showEmergencyOptions = $0
+            // If the dialog is being dismissed without selecting an option,
+            // we need to reset the processing flag
+            if !$0 {
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                viewModel.isProcessingAIResponse = false
+              }
+            }
+          }
         ),
         titleVisibility: .visible
       ) {
         Button("Police", role: .destructive) {
-          DispatchQueue.main.async {
-            viewModel.sendEmergencyMessage(level: "Police")
+          // Process emergency after the dialog is dismissed
+          let emergencyLevel = "Police"
+          viewModel.showEmergencyOptions = false
+          // Use a slight delay to ensure the dialog has finished dismissing
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            viewModel.sendEmergencyMessage(level: emergencyLevel)
+            // Note: No need to reset isProcessingAIResponse as sendEmergencyMessage will use it
           }
         }
         Button("Security", role: .destructive) {
-          DispatchQueue.main.async {
-            viewModel.sendEmergencyMessage(level: "Security")
+          // Process emergency after the dialog is dismissed
+          let emergencyLevel = "Security"
+          viewModel.showEmergencyOptions = false
+          // Use a slight delay to ensure the dialog has finished dismissing
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            viewModel.sendEmergencyMessage(level: emergencyLevel)
+            // Note: No need to reset isProcessingAIResponse as sendEmergencyMessage will use it
           }
         }
         Button("Medical", role: .destructive) {
-          DispatchQueue.main.async {
-            viewModel.sendEmergencyMessage(level: "Medical")
+          // Process emergency after the dialog is dismissed
+          let emergencyLevel = "Medical" 
+          viewModel.showEmergencyOptions = false
+          // Use a slight delay to ensure the dialog has finished dismissing
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            viewModel.sendEmergencyMessage(level: emergencyLevel)
+            // Note: No need to reset isProcessingAIResponse as sendEmergencyMessage will use it
           }
         }
-        Button("Cancel", role: .cancel) { }
+        Button("Cancel", role: .cancel) { 
+          // When Cancel is tapped, reset the processing flag
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            viewModel.isProcessingAIResponse = false
+          }
+        }
       } message: {
         Text("Emergency services will be contacted immediately")
       }

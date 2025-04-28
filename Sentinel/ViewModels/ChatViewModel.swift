@@ -71,26 +71,41 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   }
 
   func selectIncidentType(_ type: String) {
+    // Cache the type to avoid capturing mutable state
+    let incidentType = type
+    
     // Check if this is an emergency selection
-    if type == "Emergency" {
-      // Show emergency options dialog
-      showEmergencyOptions = true
+    if incidentType == "Emergency" {
+      // Schedule on main thread with a delay to avoid view update issues
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        self?.showEmergencyOptions = true
+      }
       return
     }
 
-    // Add user selection
+    // Create message objects but don't modify state yet
     let userMsg = ChatMessage(
-      id: UUID().uuidString, role: .user, content: type, timestamp: Date(), messageType: .chat)
-    items.append(.text(userMsg))
+      id: UUID().uuidString, role: .user, content: incidentType, timestamp: Date(), messageType: .chat)
     
-    // Add assistant response
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+    // Schedule updates on main thread with proper sequencing
+    DispatchQueue.main.async { [weak self] in
       guard let self = self else { return }
-      let response = ChatMessage(
-        id: UUID().uuidString, role: .assistant,
-        content: "Thanks for reporting a \(type) incident. Can you describe what happened?",
-        timestamp: Date(), messageType: .chat)
-      self.items.append(.text(response))
+      
+      // Add user message first
+      self.items.append(.text(userMsg))
+      
+      // Check if we have enough context for report submission
+      self.checkReportReadiness()
+      
+      // Then schedule assistant response with a delay
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        guard let self = self else { return }
+        let response = ChatMessage(
+          id: UUID().uuidString, role: .assistant,
+          content: "Thanks for reporting a \(incidentType) incident. Can you describe what happened?",
+          timestamp: Date(), messageType: .chat)
+        self.items.append(.text(response))
+      }
     }
   }
 
@@ -102,61 +117,84 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Updated sendMessage to use OpenAI
   func sendMessageWithAI() {
+    // Cache all required values locally before any state changes
+    // Since isProcessingAIResponse might have been set already in the button handler
+    // we don't need to check it here
     let trimmedText = inputText.trimmingCharacters(in: .whitespaces)
+    let currentInputText = inputText
     let hasText = !trimmedText.isEmpty
     let hasImages = !selectedImages.isEmpty
+    let currentImages = selectedImages
+    let currentEmergencyFlow = isEmergencyFlow
     
     // Return if nothing to send
-    guard hasText || hasImages else { return }
+    guard hasText || hasImages else { 
+        // Reset processing flag if there's nothing to send
+        DispatchQueue.main.async { [weak self] in
+            self?.isProcessingAIResponse = false
+        }
+        return 
+    }
     
-    // If there's text, add user message
+    // Prepare message data without modifying state
+    var userMessage: ChatMessage? = nil
+    var imageData: [UIImage]? = nil
+    
+    // Create a copy of all data we need
     if hasText {
-        let userMsg = ChatMessage(
+        userMessage = ChatMessage(
             id: UUID().uuidString, 
             role: .user, 
-            content: inputText, 
+            content: currentInputText, 
             timestamp: Date(), 
             messageType: .chat
         )
-        items.append(.text(userMsg))
-        
-        // Check if we have enough context for report submission
-        // Count user messages to determine if we're past the initial incident type selection
-        let userMessageCount = items.filter { 
-          if case .text(let message) = $0, message.role == .user { return true }
-          return false
-        }.count
-        
-        // Enable report submission once we have at least two user messages
-        // (incident type + details message)
-        if userMessageCount >= 2 && !isEmergencyFlow {
-          isReportReadyForSubmission = true
-        }
     }
     
-    // If there are images, add them
     if hasImages {
-        // Create a copy of the current images
-        let imagesToSend = selectedImages
-        
-        // Add the image message with caption
-        items.append(.image(images: imagesToSend, caption: trimmedText))
-        
-        // Clear the selected images
-        selectedImages = []
-        selectedItems = []
-        
-        // If user adds an image, we definitely have enough context to submit report
-        if !isEmergencyFlow {
-          isReportReadyForSubmission = true
-        }
+        imageData = currentImages
     }
     
-    // Clear the input text
-    inputText = ""
-    
-    // Get AI response
-    getAIResponse()
+    // Now perform state updates on main thread with proper sequencing
+    DispatchQueue.main.async { [weak self] in
+        guard let self = self else { return }
+        
+        // First clear the input fields to prevent duplicate submissions
+        if hasText {
+            self.inputText = ""
+        }
+        
+        if hasImages {
+            self.selectedImages = []
+            self.selectedItems = []
+        }
+        
+        // Sequence the remaining updates with small delays
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self = self else { return }
+            
+            // Add user message if we have text
+            if let msg = userMessage {
+                self.items.append(.text(msg))
+                
+                // Check if we have enough context for report submission after adding user message
+                self.checkReportReadiness()
+            }
+            
+            // Add image message if we have images
+            if let images = imageData {
+                self.items.append(.image(images: images, caption: trimmedText))
+                
+                // Check report readiness again after adding image
+                self.checkReportReadiness()
+            }
+            
+            // Get AI response after a short delay to let view updates finish
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.getAIResponse()
+            }
+        }
+    }
   }
   
   /// Legacy message sending implementation (kept for reference/fallback)
@@ -259,16 +297,30 @@ final class ChatViewModel: ObservableObject, TabNavigating {
 
   /// Initiate emergency mode with AI responses
   func sendEmergencyMessage(level: String) {
-    isEmergencyFlow = true
+    // Perform all state updates in properly sequenced async blocks
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      
+      // Update emergency flow state
+      self.isEmergencyFlow = true
+      self.isReportReadyForSubmission = false // Ensure we reset the submission state for emergency flow
 
-    // Add emergency notification to chat
-    items.append(.emergency(level: level))
+      // Add a small delay between state changes
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+        guard let self = self else { return }
+        
+        // Add emergency notification to chat
+        self.items.append(.emergency(level: level))
 
-    // Log emergency event
-    logAnalyticsEvent("emergency_requested", details: ["level": level])
-    
-    // Get AI response for the emergency
-    getAIResponse()
+        // Log emergency event
+        self.logAnalyticsEvent("emergency_requested", details: ["level": level])
+        
+        // Get AI response for the emergency after a small delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+          self?.getAIResponse()
+        }
+      }
+    }
   }
   
   /// Legacy emergency message implementation (kept for reference/fallback)
@@ -345,6 +397,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
             "emergency_mode": "\(self.isEmergencyFlow)",
           ])
         
+        // Check if we have enough context for report submission (just having images is enough)
+        self.checkReportReadiness()
+        
         // Images will be sent when user hits send button
       }
     }
@@ -404,31 +459,11 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Determines if the submit report chip should be shown after a message
   func shouldShowSubmitChip(after item: ChatItem) -> Bool {
-    // Only show submit chip in normal mode 
-    if isEmergencyFlow { return false }
+    // Only show submit chip in normal mode and when report is ready
+    if isEmergencyFlow || !isReportReadyForSubmission { return false }
     
     // Make sure this is a text item from the assistant
     guard case .text(let msg) = item, msg.role == .assistant else { return false }
-    
-    // We need at least 4 messages for a meaningful conversation:
-    // 1. Assistant initial question
-    // 2. User selects incident type
-    // 3. Assistant asks for details
-    // 4. User provides details
-    let userMessagesCount = items.filter { 
-      if case .text(let message) = $0, message.role == .user {
-        return true
-      }
-      return false
-    }.count
-    
-    // Only show submit option if user has provided at least one follow-up message after incident type
-    if userMessagesCount < 2 {
-      return false
-    }
-    
-    // Set report as ready for submission now that we have sufficient context
-    isReportReadyForSubmission = true
     
     // Find the last assistant message
     if let lastAssistantMsg = items.last(where: { 
@@ -442,6 +477,31 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     }
     
     return false
+  }
+  
+  /// Checks if there's enough context to enable report submission
+  private func checkReportReadiness() {
+    // Only applicable in normal mode
+    if isEmergencyFlow { return }
+    
+    // Count user messages
+    let userMessagesCount = items.filter { 
+      if case .text(let message) = $0, message.role == .user {
+        return true
+      }
+      return false
+    }.count
+    
+    // We need at least 2 user messages or an image for a meaningful report
+    let hasImage = items.contains { 
+      if case .image = $0 { return true }
+      return false 
+    }
+    
+    // Enable report submission if we have enough context
+    if userMessagesCount >= 2 || hasImage {
+      isReportReadyForSubmission = true
+    }
   }
   
   /// Determines if the view incidents chip should be shown after a message
@@ -631,11 +691,8 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Get AI response using the OpenAI service
   func getAIResponse() {
-      // Don't proceed if we're already processing
-      guard !isProcessingAIResponse else { return }
-      
-      // Set processing flag
-      isProcessingAIResponse = true
+      // Since we're now setting isProcessingAIResponse in the button handler,
+      // we don't need to check it here - just use it to ensure we're not duplicating tasks
       
       // Show loading indicator right away
       addLoadingIndicator()
@@ -651,8 +708,8 @@ final class ChatViewModel: ObservableObject, TabNavigating {
           // Create OpenAI service instance
           let openAIService = try OpenAIService()
           
-          // Use streaming for better UX
-          openAIService.sendStreamingChatCompletion(
+          // Use non-streaming API instead to avoid view update issues
+          openAIService.sendChatCompletion(
               messages: messageHistory,
               systemPrompt: currentSystemPrompt,
               functions: currentFunctionDefinitions,
@@ -661,31 +718,35 @@ final class ChatViewModel: ObservableObject, TabNavigating {
           ) { [weak self] result in
               guard let self = self else { return }
               
-              // Handle streaming results
-              switch result {
-              case .token(let text):
-                  // Handle streamed tokens
-                  self.handleStreamedToken(text)
+              DispatchQueue.main.async {
+                  // Remove loading indicator
+                  self.removeLoadingIndicator()
+                  self.isProcessingAIResponse = false
                   
-              case .functionCall(let name, let args):
-                  // Handle function calls
-                  self.handleFunctionCall(name, arguments: args)
-                  
-              case .error(let error):
-                  // Handle errors
-                  print("OpenAI error: \(error)")
-                  DispatchQueue.main.async {
-                      self.removeLoadingIndicator()
-                      self.isProcessingAIResponse = false
+                  switch result {
+                  case .success(let response):
+                      // Add assistant message with complete content
+                      let assistantMessage = ChatMessage(
+                          id: UUID().uuidString,
+                          role: .assistant,
+                          content: response.content,
+                          timestamp: Date(),
+                          messageType: self.isEmergencyFlow ? .emergency : .chat
+                      )
+                      self.items.append(.text(assistantMessage))
+                      
+                      // Handle function call if present
+                      if let functionCall = response.functionCall {
+                          self.processFunctionCall(
+                              name: functionCall.name, 
+                              arguments: functionCall.arguments
+                          )
+                      }
+                      
+                  case .failure(let error):
+                      // Handle errors
+                      print("OpenAI error: \(error)")
                       self.addFallbackResponse()
-                  }
-                  
-              case .done:
-                  // Finalize response
-                  DispatchQueue.main.async {
-                      self.removeLoadingIndicator()
-                      self.finalizeAIResponse()
-                      self.isProcessingAIResponse = false
                   }
               }
           }
@@ -1029,34 +1090,10 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       return nil
   }
   
-  /// Handle function call from OpenAI
-  private func handleFunctionCall(_ name: String, arguments: [String: Any]) {
-      // Special handling for argument chunks in streaming
-      if name == "__args_chunk__", let chunk = arguments["chunk"] as? String {
-          // Accumulate function arguments
-          currentFunctionArgs += chunk
-          return
-      }
-      
-      // Initialize function name if this is first call
-      if currentFunctionName.isEmpty {
-          currentFunctionName = name
-      }
-      
-      // Process complete function calls
-      if !currentFunctionName.isEmpty && !currentFunctionArgs.isEmpty {
-          // Try to parse accumulated arguments as JSON
-          if let argsData = currentFunctionArgs.data(using: .utf8),
-             let args = try? JSONSerialization.jsonObject(with: argsData) as? [String: Any] {
-              // Process with complete arguments
-              processFunctionCall(name: currentFunctionName, arguments: args)
-          }
-      }
-  }
-  
-  /// Process completed function call
+  /// Process a function call from the non-streaming API
   private func processFunctionCall(name: String, arguments: [String: Any]) {
-      DispatchQueue.main.async { [weak self] in
+      // Execute on the main thread with a slight delay to avoid view update conflicts
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
           guard let self = self else { return }
           
           switch name {
@@ -1072,7 +1109,17 @@ final class ChatViewModel: ObservableObject, TabNavigating {
               if let suggest = arguments["suggest"] as? Bool,
                  let level = arguments["level"] as? String,
                  suggest {
-                  self.showEmergencyOptions = true
+                  // Create temporary variable to track that we want to show emergency
+                  let shouldShowEmergency = true
+                  
+                  // Use a longer delay to ensure other view updates have completed
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                      guard let self = self else { return }
+                      // Only set if we're not already in emergency flow
+                      if !self.isEmergencyFlow {
+                          self.showEmergencyOptions = shouldShowEmergency
+                      }
+                  }
               }
               
           default:
@@ -1230,6 +1277,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       // Set processing flag
       isProcessingAIResponse = true
       
+      // Add loading indicator
+      addLoadingIndicator()
+      
       do {
           // Create OpenAI service instance
           let openAIService = try OpenAIService()
@@ -1252,6 +1302,8 @@ final class ChatViewModel: ObservableObject, TabNavigating {
               guard let self = self else { return }
               
               DispatchQueue.main.async {
+                  // Remove loading indicator
+                  self.removeLoadingIndicator()
                   self.isProcessingAIResponse = false
                   
                   switch result {
@@ -1266,8 +1318,10 @@ final class ChatViewModel: ObservableObject, TabNavigating {
                       )
                       self.items.append(.text(introMessage))
                       
-                      // Add the report
-                      self.items.append(.report(report))
+                      // Add the report (with slight delay to prevent view update conflicts)
+                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                          self.items.append(.report(report))
+                      }
                       
                   case .failure(let error):
                       print("Report generation error: \(error)")
@@ -1279,6 +1333,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       } catch {
           // Handle service initialization error
           print("OpenAI service error: \(error)")
+          removeLoadingIndicator()
           isProcessingAIResponse = false
           addFallbackResponse()
       }

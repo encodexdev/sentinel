@@ -28,8 +28,12 @@ struct ChatMessageList: View {
                 SuggestionChips(
                   suggestions: incidentTypes,
                   emergencyOption: true
-                ) {
-                  vm.selectIncidentType($0)
+                ) { selection in
+                  // Decouple action from view update cycle with asyncAfter
+                  let selectedType = selection // Cache the selection to avoid capture issues
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    vm.selectIncidentType(selectedType)
+                  }
                 }
                 .padding(.top, 8)
               }
@@ -39,9 +43,12 @@ struct ChatMessageList: View {
                 SuggestionChips(
                   suggestions: [],
                   cancelEmergency: true
-                ) {
-                  if $0 == "Cancel Emergency" {
-                    vm.showCancelEmergencyConfirmation = true
+                ) { selection in
+                  if selection == "Cancel Emergency" {
+                    // Decouple action from view update cycle with asyncAfter
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      vm.showCancelEmergencyConfirmation = true
+                    }
                   }
                 }
                 .padding(.top, 8)
@@ -52,10 +59,13 @@ struct ChatMessageList: View {
                 SuggestionChips(
                   suggestions: [],
                   submitReport: true
-                ) {
-                  if $0 == "Submit Report" {
-                    // Show submit confirmation dialog
-                    NotificationCenter.default.post(name: Notification.Name("ShowSubmitConfirmation"), object: nil)
+                ) { selection in
+                  if selection == "Submit Report" {
+                    // Decouple action from view update cycle with asyncAfter
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      // Show submit confirmation dialog
+                      NotificationCenter.default.post(name: Notification.Name("ShowSubmitConfirmation"), object: nil)
+                    }
                   }
                 }
                 .padding(.top, 8)
@@ -69,7 +79,10 @@ struct ChatMessageList: View {
                   isPrimary: true
                 ) { selected in
                   if selected == "View Incidents" {
-                    vm.viewIncidents()
+                    // Decouple action from view update cycle with asyncAfter
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      vm.viewIncidents()
+                    }
                   }
                 }
                 .padding(.top, 8)
