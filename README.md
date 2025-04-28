@@ -11,9 +11,9 @@ _A secure, AI-guided incident reporting and visualization app for private securi
 
 ## Demo Tour
 
-|                                           Home Dashboard                                            |                                       Map Navigation                                       |
-| :-------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
-| <img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;" /> | <video src="docs/demo/map_dark_demo.mp4" autoplay loop muted controls width="280"></video> |
+|                                           Home Dashboard                                            |                                             Map Navigation                                             |
+| :-------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+| <img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;" /> | <img src="docs/demo/map_dark_demo.gif" width="280" alt="Map Navigation" style="border-radius: 8px;" /> |
 
 ---
 
@@ -21,10 +21,10 @@ _A secure, AI-guided incident reporting and visualization app for private securi
 
 Experience the intuitive AI-guided incident reporting with interactive responses and smart assistance.
 
-|                                        Regular Reporting Flow                                        |                                        Emergency Response Flow                                        |
-| :--------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------: |
-| <video src="docs/demo/chat_regular_flow_light.MP4" autoplay loop muted controls width="280"></video> | <video src="docs/demo/chat_emergency_flow_dark.MP4" autoplay loop muted controls width="280"></video> |
-|                            Standard incident reporting with AI assistance                            |                          Priority emergency response with real-time updates                           |
+|                                                  Regular Reporting Flow                                                  |                                                  Emergency Response Flow                                                   |
+| :----------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
+| <img src="docs/demo/chat_regular_flow_light.gif" width="280" alt="Regular Reporting Flow" style="border-radius: 8px;" /> | <img src="docs/demo/chat_emergency_flow_dark.gif" width="280" alt="Emergency Response Flow" style="border-radius: 8px;" /> |
+|                                      Standard incident reporting with AI assistance                                      |                                     Priority emergency response with real-time updates                                     |
 
 ---
 
