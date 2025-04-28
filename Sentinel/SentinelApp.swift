@@ -1,6 +1,8 @@
 import Combine
 import SwiftUI
 import UIKit
+import Foundation
+import ObjectiveC
 
 @main
 struct SentinelApp: App {
@@ -9,6 +11,7 @@ struct SentinelApp: App {
 
   init() {
     configureTabBarAppearance()
+    debugApiKeyConfiguration()
   }
 
   var body: some Scene {
@@ -30,6 +33,16 @@ struct SentinelApp: App {
     UITabBar.appearance().standardAppearance = tabBarAppearance
     if #available(iOS 15.0, *) {
       UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+    }
+  }
+  
+  private func debugApiKeyConfiguration() {
+    // Try to initialize OpenAIService with available API key
+    do {
+      let service = try OpenAIService()
+      print("OpenAIService initialized successfully")
+    } catch let error {
+      print("OpenAIService initialization failed: \(error)")
     }
   }
 }

@@ -1,4 +1,3 @@
-import DotEnv
 import Foundation
 import UIKit
 
@@ -46,24 +45,36 @@ class OpenAIService {
   // MARK: - Initializer
   
   init(apiKey: String? = nil) throws {
-    // Load environment variables from .env
-    do {
-      // Could load this in an environment loader if there were other api services
-      _ = try DotEnv.load(path: ".env")
-    } catch {
-      // Could not load .env
-      throw OpenAIServiceError.apiKeyMissing
-    }
-    // Resolve API key: provided, or from environment
+    // Use directly provided API key if available
     if let key = apiKey, !key.isEmpty {
       self.apiKey = key
-    } else if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !envKey.isEmpty {
-      self.apiKey = envKey
-    } else {
-      throw OpenAIServiceError.apiKeyMissing
+      return
     }
-
-    // Test openai service here.
+    
+    // Get API key from secure storage
+    if let secureKey = Environment.secureValue(for: .openAIApiKey) {
+      self.apiKey = secureKey
+      return
+    }
+    
+    // Fall back to Info.plist
+    if let bundleKey = Environment.value(for: .openAIApiKey) {
+      self.apiKey = bundleKey
+      return
+    }
+    
+    // Check environment variables (useful for CI/CD)
+    if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"],
+       !envKey.isEmpty {
+      self.apiKey = envKey
+      
+      // Store in keychain for future use
+      KeychainManager.store(value: envKey, key: Environment.Keys.openAIApiKey.rawValue)
+      return
+    }
+    
+    // No valid API key found through any method
+    throw OpenAIServiceError.apiKeyMissing
   }
   
   // MARK: - System Prompts
