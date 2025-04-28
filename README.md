@@ -7,127 +7,115 @@ _A secure, AI-guided incident reporting and visualization app for private securi
 
 </div>
 
-<div align="center">
-## Demo Tour
+---
 
-|                                                 UI Walkthrough                                                 |                                             Map Navigation                                             |
-| :------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
-| <img src="docs/demo/ui_full_walkthrough.gif" width="280" alt="Full Walkthrough" style="border-radius: 8px;" /> | <img src="docs/demo/map_dark_demo.gif" width="280" alt="Map Navigation" style="border-radius: 8px;" /> |
-
-## </div>
-
-### AI-Powered Chat Interface
-
-Experience the intuitive AI-guided incident reporting with interactive responses and smart assistance.
-
-|                                                  Regular Reporting Flow                                                  |                                                  Emergency Response Flow                                                   |
-| :----------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: |
-| <img src="docs/demo/chat_regular_flow_light.gif" width="280" alt="Regular Reporting Flow" style="border-radius: 8px;" /> | <img src="docs/demo/chat_emergency_flow_dark.gif" width="280" alt="Emergency Response Flow" style="border-radius: 8px;" /> |
-|                                      Standard incident reporting with AI assistance                                      |                                     Priority emergency response with real-time updates                                     |
+<p align="center">
+  <a href="#demo">Demo</a> •
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#roadmap">Roadmap</a> •
+  <a href="#known-issues">Known Issues</a>
+</p>
 
 ---
 
-### Smart Incident Reporting
+## Demo
 
-AI guides security personnel through structured incident reporting with multimodal capabilities and intelligent prompting.
+<p align="center">
+  <img src="docs/demo/ui_full_walkthrough.gif" alt="Full WalkThrough" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  <img src="docs/demo/map_dark_demo.gif" alt="Map Navigation" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+</p>
+<p align="center"><em>Standard views and interactive map demo.</em></p>
 
-|                      Emergency Mode                      |                  Chat Interface                  |
-| :------------------------------------------------------: | :----------------------------------------------: |
-| ![Emergency Mode](docs/demo/chat_security_emergency.png) | ![Chat Interface](docs/demo/empty_chat_dark.png) |
+<details open>
+  <summary><strong>AI-Powered Chat Interface</strong></summary>
+  <p align="center">
+    <img src="docs/demo/chat_regular_flow_light.gif" alt="Regular Reporting Flow" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+    <img src="docs/demo/chat_emergency_flow_dark.gif" alt="Emergency Response Flow" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  </p>
+  <p align="center"><em>Standard vs. Emergency reporting with smart AI assistance.</em></p>
+</details>
+
+<details open>
+  <summary><strong>Smart Incident Reporting</strong></summary>
+  <p align="center">
+    <img src="docs/demo/chat_security_emergency.png" alt="Emergency Mode" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+    <img src="docs/demo/empty_chat_dark.png" alt="Chat Interface" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  </p>
+  <p align="center"><em>Structured prompts ensure completeness and context.</em></p>
+</details>
+
+<details open>
+  <summary><strong>Interactive Map Experience</strong></summary>
+  <p align="center">
+    <img src="docs/demo/map_accept_incident_toast.png" alt="Accepting Incidents" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+    <img src="docs/demo/map_dark.png" alt="Incident Map" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  </p>
+  <p align="center"><em>Real-time pins and location-based alerts.</em></p>
+</details>
+
+<details open>
+  <summary><strong>Incidents Management</strong></summary>
+  <p align="center">
+    <img src="docs/demo/incidents_light.png" alt="Incidents Light" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+    <img src="docs/demo/incidents_dark.png" alt="Incidents Dark" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  </p>
+  <p align="center"><em>Filter, view, and resolve incidents in one place.</em></p>
+</details>
+
+<details open>
+  <summary><strong>User Profile & Settings</strong></summary>
+  <p align="center">
+    <img src="docs/demo/profile_light.png" alt="Profile" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+    <img src="docs/demo/settings_dark.png" alt="Settings" width="280" style="border:1px solid #e1e4e8; border-radius:8px; margin:8px;" />
+  </p>
+  <p align="center"><em>Customize appearance, notifications, and more.</em></p>
+</details>
 
 ---
 
-### Interactive Map Experience
+## Features
 
-Real-time incident tracking with interactive pins and location-based alerts.
-
-|                       Incident Acceptance                       |              Incident Map               |
-| :-------------------------------------------------------------: | :-------------------------------------: |
-| ![Accepting Incidents](docs/demo/map_accept_incident_toast.png) | ![Incident Map](docs/demo/map_dark.png) |
-
----
-
-### Incidents Management
-
-View, filter, and manage all incidents in a centralized dashboard.
-
-|                    Light Mode                     |                    Dark Mode                    |
-| :-----------------------------------------------: | :---------------------------------------------: |
-| ![Incidents Light](docs/demo/incidents_light.png) | ![Incidents Dark](docs/demo/incidents_dark.png) |
+- **Emergency Mode**: Priority workflows with real-time feedback.
+- **Interactive Map**: Live incident tracking and alerts.
+- **Incidents Dashboard**: Filter, assign, and manage reports.
+- **Profile & Settings**: Customize appearance and notifications.
+- **Secure**: Keys stored in local keychain; no sensitive data leaks.
 
 ---
 
-### User Profile & Settings
+## Installation
 
-Customizable user settings with appearance preferences and notification controls.
-
-|                 Profile                 |                 Settings                 |
-| :-------------------------------------: | :--------------------------------------: |
-| ![Profile](docs/demo/profile_light.png) | ![Settings](docs/demo/settings_dark.png) |
-
-## Technology Stack
-
-- **Frontend**: SwiftUI with MVVM architecture
-- **AI Integration**: OpenAI API with GPT-4 Vision capabilities
-- **Geolocation**: MapKit with custom annotations
-- **Security**: Local keychain storage for sensitive data
-
-## Setup
-
-1. **Clone the repository**
-
+1. Clone the repo:
    ```bash
    git clone https://github.com/encodexdev/sentinel.git
    cd sentinel
    ```
+2. Install dependencies (Swift Package Manager).
+3. Configure your OpenAI API key:
+   - Copy `Config/Secrets.xcconfig.example` to `Config/Secrets.xcconfig`.
+   - Add `OPENAI_API_KEY = your_key_here`.
+4. Open in Xcode and run (iOS 18+).
 
-2. **Configure your API Key**
+---
 
-   **Option 1: Using Xcode Configuration (Build-time Injection)**
+## Tech Stack
 
-   ```bash
-   # Copy the example config file
-   cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
-   # Edit the file to add your API key
-   open Config/Secrets.xcconfig
-   ```
+- **Frontend**: SwiftUI & MVVM
+- **AI**: OpenAI GPT-4 Vision
+- **Maps**: MapKit with custom annotations
+- **Security**: iOS Keychain
 
-   Edit the file to set your OpenAI API key:
+---
 
-   ```
-   OPENAI_API_KEY = your_openai_api_key_here
-   ```
+## Roadmap
 
-   **IMPORTANT:** After updating the Secrets.xcconfig file, you must:
+- Push notifications for emergencies
+- Advanced image-based incident classification
 
-   1. Clean the build folder (Product → Clean Build Folder)
-   2. Close and reopen Xcode
-   3. Build and run the project
-
-   **Option 2: Using Environment Variables**
-
-   This approach is good for local development and CI/CD:
-
-   - In Xcode, go to Product → Scheme → Edit Scheme...
-   - Under the Run phase, expand Arguments → Environment Variables
-   - Add `OPENAI_API_KEY` with your key as the value
-
-   When the app runs with this environment variable, it will automatically store the key securely in the iOS Keychain for future use.
-
-3. **Open in Xcode**
-
-   ```bash
-   open Sentinel.xcodeproj
-   ```
-
-4. **Build and Run**
-   - Target: iOS 18.0 or later
-   - Scheme: `Sentinel`
-
-## Development Roadmap
-
-- [ ] Push notification integration for emergency alerts
-- [ ] Advanced image recognition for automatic incident classification
+---
 
 ## Known Issues
 
