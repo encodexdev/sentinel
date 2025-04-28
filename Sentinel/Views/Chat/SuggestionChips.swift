@@ -86,22 +86,6 @@ struct SuggestionChips: View {
         .tint(Color("AccentOrange"))
       }
       
-      // View incidents option if enabled
-      if viewIncidents {
-        Button {
-          onSelect("View Incidents")
-        } label: {
-          HStack(spacing: 4) {
-            Image(systemName: "list.bullet.clipboard.fill")
-              .font(.caption)
-            Text("View Incidents")
-              .fontWeight(.medium)
-          }
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(Color("AccentBlue"))
-      }
-      
       // Regular suggestion chips
       ForEach(suggestions, id: \.self) { suggestion in
         Button(suggestion) {

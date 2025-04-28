@@ -891,41 +891,42 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Handle streamed token from OpenAI
   private func handleStreamedToken(_ token: String) {
-      DispatchQueue.main.async { [weak self] in
-          guard let self = self else { return }
-          
-          // Add to buffer first
-          self.responseBuffer += token
-          
+      // Add to buffer first outside of the main thread
+      responseBuffer += token
+      
+      // Use Task to avoid the SwiftUI update cycle
+      Task { @MainActor in
           // Check if we need to create a new message or update an existing one
           if let lastIndex = self.items.indices.last,
              case .text(let lastMsg) = self.items[lastIndex],
              lastMsg.role == .assistant,
-             // Only append to the most recent assistant message if it's from the current streaming session
-             lastMsg.timestamp.timeIntervalSinceNow > -5 { // Consider messages from last 5 seconds part of current stream
+             // Only append to the most recent assistant message if it's part of current stream
+             lastMsg.id.starts(with: "stream_") { 
               
               // Update the existing message with new content
               let updatedMsg = ChatMessage(
                   id: lastMsg.id,
                   role: lastMsg.role,
-                  content: self.responseBuffer, // Use full buffer, not just append token
+                  content: self.responseBuffer,
                   timestamp: lastMsg.timestamp,
                   messageType: lastMsg.messageType
               )
               
-              // Replace the last item
+              // Replace the last item without delay to prevent choppy updates
               self.items[lastIndex] = .text(updatedMsg)
           } else {
-              // Need to create a new message - only do this once we have meaningful content
-              // to avoid empty bubbles
+              // Need to create a new message - check for meaningful content first
               if !self.responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                  // Create a new streaming message with special ID prefix
                   let newMessage = ChatMessage(
-                      id: UUID().uuidString,
+                      id: "stream_\(UUID().uuidString)",
                       role: .assistant,
                       content: self.responseBuffer,
                       timestamp: Date(),
                       messageType: self.isEmergencyFlow ? .emergency : .chat
                   )
+                  
+                  // Add new message
                   self.items.append(.text(newMessage))
               }
           }
@@ -1047,27 +1048,37 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Finalize AI response after streaming is complete
   private func finalizeAIResponse() {
-      // Check if there's buffered content that hasn't been added to a message yet
-      if !responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-          let existingMessageUpdated = self.items.indices.last.flatMap { lastIndex -> Bool? in
-              if case .text(let lastMsg) = self.items[lastIndex], lastMsg.role == .assistant {
-                  return true
-              }
-              return nil
-          } ?? false
-          
-          // If we haven't updated an existing message and there's content in the buffer,
-          // we need to create a new message
-          if !existingMessageUpdated {
-              let newMessage = ChatMessage(
-                  id: UUID().uuidString,
-                  role: .assistant,
-                  content: responseBuffer,
-                  timestamp: Date(),
-                  messageType: self.isEmergencyFlow ? .emergency : .chat
-              )
-              self.items.append(.text(newMessage))
+      // Find and finalize any streaming message
+      if let streamingIndex = self.items.firstIndex(where: { item in
+          if case .text(let msg) = item, msg.role == .assistant, msg.id.starts(with: "stream_") {
+              return true
           }
+          return false
+      }) {
+          // Get the streaming message
+          if case .text(let streamMsg) = self.items[streamingIndex] {
+              // Create a finalized message with a permanent ID
+              let finalizedMsg = ChatMessage(
+                  id: UUID().uuidString, // Regular ID for finalized message
+                  role: streamMsg.role,
+                  content: streamMsg.content,
+                  timestamp: streamMsg.timestamp,
+                  messageType: streamMsg.messageType
+              )
+              
+              // Replace the streaming message with the finalized one
+              self.items[streamingIndex] = .text(finalizedMsg)
+          }
+      } else if !responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          // If somehow we have buffer content but no streaming message, create a new one
+          let newMessage = ChatMessage(
+              id: UUID().uuidString,
+              role: .assistant,
+              content: responseBuffer,
+              timestamp: Date(),
+              messageType: self.isEmergencyFlow ? .emergency : .chat
+          )
+          self.items.append(.text(newMessage))
       }
       
       // Process any pending function calls
