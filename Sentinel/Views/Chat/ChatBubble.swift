@@ -10,7 +10,7 @@ struct ChatBubble: View {
         VStack(alignment: .leading, spacing: 4) {
           // Emergency or image badges for assistant messages
           messageBadges
-          bubble
+          messageContent
         }
         Spacer(minLength: 40)
       } else {
@@ -18,7 +18,7 @@ struct ChatBubble: View {
         VStack(alignment: .trailing, spacing: 4) {
           // Emergency or image badges for user messages
           messageBadges
-          bubble
+          messageContent
         }
       }
     }
@@ -55,8 +55,17 @@ struct ChatBubble: View {
       .cornerRadius(8)
     }
   }
+  
+  @ViewBuilder
+  private var messageContent: some View {
+    if message.messageType == .loading {
+      loadingBubble
+    } else {
+      textBubble
+    }
+  }
 
-  private var bubble: some View {
+  private var textBubble: some View {
     Text(message.content)
       .padding(12)
       .foregroundColor(message.role == .user ? .white : .primary)
@@ -70,6 +79,67 @@ struct ChatBubble: View {
       .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
       .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
       .frame(maxWidth: maxWidth, alignment: message.role == .user ? .trailing : .leading)
+  }
+  
+  private var loadingBubble: some View {
+    TypingIndicator()
+      .padding(12)
+      .background(Color("CardBackground"))
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
+      .frame(maxWidth: maxWidth, alignment: .leading)
+  }
+}
+
+// Separate view for the typing animation
+struct TypingIndicator: View {
+  // State for animations
+  @State private var firstDotOffset: CGFloat = 0
+  @State private var secondDotOffset: CGFloat = 0
+  @State private var thirdDotOffset: CGFloat = 0
+  
+  var body: some View {
+    HStack(spacing: 4) {
+      Circle()
+        .fill(Color.gray.opacity(0.6))
+        .frame(width: 8, height: 8)
+        .offset(y: firstDotOffset)
+      
+      Circle()
+        .fill(Color.gray.opacity(0.6))
+        .frame(width: 8, height: 8)
+        .offset(y: secondDotOffset)
+      
+      Circle()
+        .fill(Color.gray.opacity(0.6))
+        .frame(width: 8, height: 8)
+        .offset(y: thirdDotOffset)
+    }
+    .onAppear {
+      startAnimation()
+    }
+  }
+  
+  private func startAnimation() {
+    // Start animations with different delays
+    withAnimation(Animation.easeInOut(duration: 0.4)
+                  .repeatForever(autoreverses: true)) {
+      firstDotOffset = -4
+    }
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+      withAnimation(Animation.easeInOut(duration: 0.4)
+                    .repeatForever(autoreverses: true)) {
+        secondDotOffset = -4
+      }
+    }
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+      withAnimation(Animation.easeInOut(duration: 0.4)
+                    .repeatForever(autoreverses: true)) {
+        thirdDotOffset = -4
+      }
+    }
   }
 }
 
@@ -122,6 +192,15 @@ struct ChatBubble_Previews: PreviewProvider {
           messageType: .emergency
         ))
         
+        // Loading indicator message
+        ChatBubble(message: ChatMessage(
+          id: "loading",
+          role: .assistant,
+          content: "",
+          timestamp: Date(),
+          messageType: .loading
+        ))
+        
         // Image message
         ChatBubble(message: ChatMessage(
           id: "5",
@@ -152,6 +231,15 @@ struct ChatBubble_Previews: PreviewProvider {
           content: "This is how it looks in dark mode.",
           timestamp: Date(),
           messageType: .chat
+        ))
+        
+        // Loading dark mode
+        ChatBubble(message: ChatMessage(
+          id: "loading_dark",
+          role: .assistant,
+          content: "",
+          timestamp: Date(),
+          messageType: .loading
         ))
         
         ChatBubble(message: ChatMessage(

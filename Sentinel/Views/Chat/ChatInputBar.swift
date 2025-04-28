@@ -52,12 +52,16 @@ struct ChatInputBar: View {
                 // Emergency button - only show in normal mode
                 if !vm.isEmergencyFlow {
                     Button {
-                        vm.showEmergencyOptions = true
+                        // Defer to the next run loop to avoid publishing during view updates
+                        DispatchQueue.main.async {
+                            vm.showEmergencyOptions = true
+                        }
                     } label: {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.title2)
                             .foregroundColor(Color.red)
                     }
+                    .disabled(vm.isProcessingAIResponse)
                 }
                 
                 // Photo picker button
@@ -82,7 +86,12 @@ struct ChatInputBar: View {
                     )
                 
                 // Send button
-                Button { vm.sendMessage() } label: {
+                Button {
+                    // Defer to the next run loop to avoid publishing during view updates
+                    DispatchQueue.main.async {
+                        vm.sendMessage()
+                    }
+                } label: {
                     Image(systemName: "paperplane.fill")
                         .rotationEffect(.degrees(45))
                         .font(.title2)
@@ -92,7 +101,7 @@ struct ChatInputBar: View {
                             : Color("AccentBlue").opacity(0.5)
                         )
                 }
-                .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty && vm.selectedImages.isEmpty)
+                .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty && vm.selectedImages.isEmpty || vm.isProcessingAIResponse)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)

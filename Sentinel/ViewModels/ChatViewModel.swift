@@ -637,6 +637,9 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       // Set processing flag
       isProcessingAIResponse = true
       
+      // Show loading indicator right away
+      addLoadingIndicator()
+      
       // Build message history
       let messageHistory = buildMessageHistory()
       
@@ -672,6 +675,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
                   // Handle errors
                   print("OpenAI error: \(error)")
                   DispatchQueue.main.async {
+                      self.removeLoadingIndicator()
                       self.isProcessingAIResponse = false
                       self.addFallbackResponse()
                   }
@@ -679,6 +683,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
               case .done:
                   // Finalize response
                   DispatchQueue.main.async {
+                      self.removeLoadingIndicator()
                       self.finalizeAIResponse()
                       self.isProcessingAIResponse = false
                   }
@@ -687,8 +692,51 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       } catch {
           // Handle service initialization error
           print("OpenAI service error: \(error)")
+          removeLoadingIndicator()
           isProcessingAIResponse = false
           addFallbackResponse()
+      }
+  }
+  
+  /// Add loading indicator to show AI is typing
+  private func addLoadingIndicator() {
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          // Check if we already have a loading indicator
+          let hasLoadingIndicator = self.items.contains { item in
+              if case .text(let msg) = item, msg.messageType == .loading {
+                  return true
+              }
+              return false
+          }
+          
+          // Only add if there isn't one already
+          if !hasLoadingIndicator {
+              let loadingMessage = ChatMessage(
+                  id: "loading_\(UUID().uuidString)",
+                  role: .assistant,
+                  content: "Thinking...",
+                  timestamp: Date(),
+                  messageType: .loading
+              )
+              self.items.append(.text(loadingMessage))
+          }
+      }
+  }
+  
+  /// Remove any loading indicators
+  private func removeLoadingIndicator() {
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          // Find and remove loading indicators
+          self.items.removeAll { item in
+              if case .text(let msg) = item, msg.messageType == .loading {
+                  return true
+              }
+              return false
+          }
       }
   }
   
@@ -785,33 +833,49 @@ final class ChatViewModel: ObservableObject, TabNavigating {
 
   /// Cancel the emergency and return to normal incident reporting
   func cancelEmergency() {
-    isEmergencyFlow = false
-    showCancelEmergencyConfirmation = false
-
-    // Log the cancellation
-    logAnalyticsEvent(
-      "emergency_cancelled",
-      details: [
-        "message_count": "\(items.count)"
-      ])
+    // Dispatch to main queue to avoid view update conflicts
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
       
-    // Create a report from the emergency
-    createReportFromEmergency()
+      // Update model state
+      self.isEmergencyFlow = false
+      self.showCancelEmergencyConfirmation = false
 
-    // Add message about emergency being recorded
-    let response = ChatMessage(
-      id: UUID().uuidString,
-      role: .assistant,
-      content:
-        "The emergency incident has been recorded on file. Please add any additional messages or images for context.",
-      timestamp: Date(),
-      messageType: .chat
-    )
-    items.append(.text(response))
+      // Log the cancellation
+      self.logAnalyticsEvent(
+        "emergency_cancelled",
+        details: [
+          "message_count": "\(self.items.count)"
+        ])
+        
+      // Create a report from the emergency with slight delay
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        guard let self = self else { return }
+        self.createReportFromEmergency()
+        
+        // Add message about emergency being recorded
+        let response = ChatMessage(
+          id: UUID().uuidString,
+          role: .assistant,
+          content:
+            "The emergency incident has been recorded on file. Please add any additional messages or images for context.",
+          timestamp: Date(),
+          messageType: .chat
+        )
+        
+        // Add with slight delay to avoid view update conflicts
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          self.items.append(.text(response))
+        }
+      }
+    }
   }
   
   /// Creates a report from an emergency incident
   private func createReportFromEmergency() {
+    // Make a local copy of items to avoid concurrent modification issues
+    let currentItems = self.items
+    
     // First, extract emergency level from items
     var level = "Security"
     var userComments = [String]()
@@ -821,7 +885,7 @@ final class ChatViewModel: ObservableObject, TabNavigating {
     var timestamp = Date()
     
     // Extract information from the conversation
-    for item in items {
+    for item in currentItems {
       switch item {
       case .emergency(let emergencyLevel, _):
         level = emergencyLevel
@@ -865,12 +929,20 @@ final class ChatViewModel: ObservableObject, TabNavigating {
       messageType: .chat
     )
     
-    // Add the message and report to the chat
-    items.append(.text(introMessage))
-    items.append(.report(report))
-    
-    // Set flag to indicate report is ready for further updates
-    isReportReadyForSubmission = true
+    // Add items in a safe manner with delayed execution
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      self.items.append(.text(introMessage))
+      
+      // Small delay between updates to prevent view update conflicts
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+        guard let self = self else { return }
+        self.items.append(.report(report))
+        
+        // Set flag to indicate report is ready for further updates
+        self.isReportReadyForSubmission = true
+      }
+    }
     
     // Log report creation
     logAnalyticsEvent(
@@ -889,37 +961,49 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   // MARK: - Response Handling
   
+  /// A flag to prevent creating duplicate streaming messages
+  private var isCreatingMessage = false
+  
+  /// Static ID for the streaming message to ensure uniqueness
+  private static let streamingMessageId = "stream_message"
+  
   /// Handle streamed token from OpenAI
   private func handleStreamedToken(_ token: String) {
-      // Add to buffer first outside of the main thread
+      // Add token to buffer
       responseBuffer += token
       
-      // Use Task to avoid the SwiftUI update cycle
-      Task { @MainActor in
-          // Check if we need to create a new message or update an existing one
-          if let lastIndex = self.items.indices.last,
-             case .text(let lastMsg) = self.items[lastIndex],
-             lastMsg.role == .assistant,
-             // Only append to the most recent assistant message if it's part of current stream
-             lastMsg.id.starts(with: "stream_") { 
-              
-              // Update the existing message with new content
+      // Only process on main thread to avoid threading issues
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          // If this is the first token, remove loading indicators
+          if self.responseBuffer.count == token.count {
+              self.removeLoadingIndicator()
+          }
+          
+          // Check if we already have a streaming message
+          let streamingMessage = self.findStreamingMessage()
+          
+          // If we have a streaming message, update it
+          if let (index, _) = streamingMessage {
+              // Update existing message with new content
               let updatedMsg = ChatMessage(
-                  id: lastMsg.id,
-                  role: lastMsg.role,
+                  id: ChatViewModel.streamingMessageId,
+                  role: .assistant,
                   content: self.responseBuffer,
-                  timestamp: lastMsg.timestamp,
-                  messageType: lastMsg.messageType
+                  timestamp: Date(),
+                  messageType: self.isEmergencyFlow ? .emergency : .chat
               )
               
-              // Replace the last item without delay to prevent choppy updates
-              self.items[lastIndex] = .text(updatedMsg)
+              // Replace at the same index
+              self.items[index] = .text(updatedMsg)
           } else {
-              // Need to create a new message - check for meaningful content first
-              if !self.responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                  // Create a new streaming message with special ID prefix
+              // Only create a new message if we have content and don't already have one
+              if !self.responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
+                 streamingMessage == nil {
+                  // Create a new message with fixed ID
                   let newMessage = ChatMessage(
-                      id: "stream_\(UUID().uuidString)",
+                      id: ChatViewModel.streamingMessageId,
                       role: .assistant,
                       content: self.responseBuffer,
                       timestamp: Date(),
@@ -931,6 +1015,18 @@ final class ChatViewModel: ObservableObject, TabNavigating {
               }
           }
       }
+  }
+  
+  /// Find the current streaming message in the items array
+  private func findStreamingMessage() -> (Int, ChatMessage)? {
+      for (index, item) in items.enumerated() {
+          if case .text(let msg) = item,
+             msg.role == .assistant,
+             msg.id == ChatViewModel.streamingMessageId {
+              return (index, msg)
+          }
+      }
+      return nil
   }
   
   /// Handle function call from OpenAI
@@ -1048,15 +1144,17 @@ final class ChatViewModel: ObservableObject, TabNavigating {
   
   /// Finalize AI response after streaming is complete
   private func finalizeAIResponse() {
-      // Find and finalize any streaming message
-      if let streamingIndex = self.items.firstIndex(where: { item in
-          if case .text(let msg) = item, msg.role == .assistant, msg.id.starts(with: "stream_") {
-              return true
-          }
-          return false
-      }) {
-          // Get the streaming message
-          if case .text(let streamMsg) = self.items[streamingIndex] {
+      // Process on main thread
+      DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          
+          // Find the streaming message with our consistent ID
+          if let (streamingIndex, streamMsg) = self.findStreamingMessage() {
+              // Make sure index is still valid
+              guard streamingIndex < self.items.count else {
+                  return
+              }
+              
               // Create a finalized message with a permanent ID
               let finalizedMsg = ChatMessage(
                   id: UUID().uuidString, // Regular ID for finalized message
@@ -1068,31 +1166,34 @@ final class ChatViewModel: ObservableObject, TabNavigating {
               
               // Replace the streaming message with the finalized one
               self.items[streamingIndex] = .text(finalizedMsg)
+          } else if !self.responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+              // If somehow we have buffer content but no streaming message, create a new one
+              let newMessage = ChatMessage(
+                  id: UUID().uuidString,
+                  role: .assistant,
+                  content: self.responseBuffer,
+                  timestamp: Date(),
+                  messageType: self.isEmergencyFlow ? .emergency : .chat
+              )
+              self.items.append(.text(newMessage))
           }
-      } else if !responseBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-          // If somehow we have buffer content but no streaming message, create a new one
-          let newMessage = ChatMessage(
-              id: UUID().uuidString,
-              role: .assistant,
-              content: responseBuffer,
-              timestamp: Date(),
-              messageType: self.isEmergencyFlow ? .emergency : .chat
-          )
-          self.items.append(.text(newMessage))
-      }
-      
-      // Process any pending function calls
-      if !currentFunctionName.isEmpty && !currentFunctionArgs.isEmpty {
-          if let argsData = currentFunctionArgs.data(using: .utf8),
-             let args = try? JSONSerialization.jsonObject(with: argsData) as? [String: Any] {
-              processFunctionCall(name: currentFunctionName, arguments: args)
+          
+          // Process any pending function calls
+          if !self.currentFunctionName.isEmpty && !self.currentFunctionArgs.isEmpty {
+              if let argsData = self.currentFunctionArgs.data(using: .utf8),
+                 let args = try? JSONSerialization.jsonObject(with: argsData) as? [String: Any] {
+                  // Use a slight delay to avoid conflicts with view updates
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                      self.processFunctionCall(name: self.currentFunctionName, arguments: args)
+                  }
+              }
           }
+          
+          // Reset all streaming buffers
+          self.responseBuffer = ""
+          self.currentFunctionName = ""
+          self.currentFunctionArgs = ""
       }
-      
-      // Reset all streaming buffers
-      responseBuffer = ""
-      currentFunctionName = ""
-      currentFunctionArgs = ""
   }
   
   /// Add fallback response in case of errors

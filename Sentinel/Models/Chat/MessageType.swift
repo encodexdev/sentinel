@@ -13,4 +13,7 @@ enum MessageType: String, Codable {
     
     /// Report message containing incident details
     case report
+    
+    /// Loading indicator while AI is typing
+    case loading
 }

@@ -491,6 +491,9 @@ class OpenAIService {
     let responseString = String(decoding: data, as: UTF8.self)
     let lines = responseString.components(separatedBy: "\n\n")
     
+    // Send completion at the end
+    var hasProcessedAnyContent = false
+    
     for line in lines {
       if line.hasPrefix("data: ") {
         let jsonString = line.dropFirst(6)  // Remove "data: " prefix
@@ -509,9 +512,10 @@ class OpenAIService {
           
           // Check for content delta
           if let delta = choice["delta"] as? [String: Any] {
-            if let content = delta["content"] as? String {
+            if let content = delta["content"] as? String, !content.isEmpty {
               // Send token to handler
               onReceive(.token(content))
+              hasProcessedAnyContent = true
             }
             
             // Check for function call delta
@@ -520,6 +524,7 @@ class OpenAIService {
               if let name = functionCall["name"] as? String {
                 // Initial function call with name
                 onReceive(.functionCall(name, [:]))
+                hasProcessedAnyContent = true
               }
               
               // For function arguments (may come in chunks)
@@ -527,11 +532,19 @@ class OpenAIService {
                 // We're only sending argument chunks here
                 // The actual JSON parsing happens later when all chunks are collected
                 onReceive(.functionCall("__args_chunk__", ["chunk": argsChunk]))
+                hasProcessedAnyContent = true
               }
             }
           }
         }
       }
+    }
+    
+    // If we didn't process any content and this isn't a [DONE] marker,
+    // wait for the next chunk of data
+    if !hasProcessedAnyContent && !responseString.contains("[DONE]") {
+      // No need to call onReceive here, just wait for more data
+      return
     }
   }
   

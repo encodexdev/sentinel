@@ -79,7 +79,7 @@ struct ChatView: View {
 
 // Main chat content component
 struct ChatContent: View {
-  let viewModel: ChatViewModel
+  @ObservedObject var viewModel: ChatViewModel
   let showSubmitConfirmation: Binding<Bool>
   let showRestartConfirmation: Binding<Bool>
   
@@ -144,14 +144,17 @@ extension View {
       // Cancel emergency confirmation dialog
       .confirmationDialog(
         "Cancel Emergency Assistance",
-        isPresented: .init(
+        isPresented: Binding(
           get: { viewModel.showCancelEmergencyConfirmation },
           set: { viewModel.showCancelEmergencyConfirmation = $0 }
         ),
         titleVisibility: .visible
       ) {
         Button("Cancel Emergency", role: .destructive) {
-          viewModel.cancelEmergency()
+          // Use a dispatch to main async to avoid view update cycle issues
+          DispatchQueue.main.async {
+            viewModel.cancelEmergency()
+          }
         }
         Button("Keep Emergency Active", role: .cancel) { }
       } message: {
@@ -161,20 +164,26 @@ extension View {
       // Emergency options dialog
       .confirmationDialog(
         "Request Emergency Assistance",
-        isPresented: .init(
+        isPresented: Binding(
           get: { viewModel.showEmergencyOptions },
           set: { viewModel.showEmergencyOptions = $0 }
         ),
         titleVisibility: .visible
       ) {
         Button("Police", role: .destructive) {
-          viewModel.sendEmergencyMessage(level: "Police")
+          DispatchQueue.main.async {
+            viewModel.sendEmergencyMessage(level: "Police")
+          }
         }
         Button("Security", role: .destructive) {
-          viewModel.sendEmergencyMessage(level: "Security")
+          DispatchQueue.main.async {
+            viewModel.sendEmergencyMessage(level: "Security")
+          }
         }
         Button("Medical", role: .destructive) {
-          viewModel.sendEmergencyMessage(level: "Medical")
+          DispatchQueue.main.async {
+            viewModel.sendEmergencyMessage(level: "Medical")
+          }
         }
         Button("Cancel", role: .cancel) { }
       } message: {
