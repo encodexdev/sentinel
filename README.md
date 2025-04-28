@@ -14,7 +14,9 @@
     </tr>
     <tr>
       <td><img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;"/></td>
-      <td><video src="docs/demo/map_dark_demo.mp4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
+      <td>
+        [![Map Navigation Demo](docs/demo/map_dark_thumbnail.png)](docs/demo/map_dark_demo.mp4)
+      </td>
     </tr>
   </table>
 </div>
@@ -30,8 +32,12 @@ Experience the intuitive AI-guided incident reporting with interactive responses
       <td align="center"><b>Emergency Response Flow</b></td>
     </tr>
     <tr>
-      <td><video src="docs/demo/chat_regular_flow_light.MP4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
-      <td><video src="docs/demo/chat_emergency_flow_dark.MP4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
+      <td>
+        [![Regular Reporting Flow](docs/demo/chat_regular_flow_light_thumbnail.png)](docs/demo/chat_regular_flow_light.MP4)
+      </td>
+      <td>
+        [![Emergency Response Flow](docs/demo/chat_emergency_flow_dark_thumbnail.png)](docs/demo/chat_emergency_flow_dark.MP4)
+      </td>
     </tr>
     <tr>
       <td>Standard incident reporting with AI assistance</td>
