@@ -10,9 +10,9 @@ _A secure, AI-guided incident reporting and visualization app for private securi
 <div align="center">
 ## Demo Tour
 
-|                                           Home Dashboard                                            |                                             Map Navigation                                             |
-| :-------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
-| <img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;" /> | <img src="docs/demo/map_dark_demo.gif" width="280" alt="Map Navigation" style="border-radius: 8px;" /> |
+|                                                 UI Walkthrough                                                 |                                             Map Navigation                                             |
+| :------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+| <img src="docs/demo/ui_full_walkthrough.gif" width="280" alt="Full Walkthrough" style="border-radius: 8px;" /> | <img src="docs/demo/map_dark_demo.gif" width="280" alt="Map Navigation" style="border-radius: 8px;" /> |
 
 ## </div>
 
