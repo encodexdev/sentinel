@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Security
 
 /// Results from a streaming OpenAI request
 enum OpenAIStreamResult {
@@ -51,16 +52,14 @@ class OpenAIService {
       return
     }
     
-    let provider = EnvironmentProvider.shared
-    
     // Get API key from secure storage
-    if let secureKey = provider.getSecureValue(for: .openAIApiKey) {
+    if let secureKey = KeychainManager.retrieve(key: AppConfig.Keys.openAIApiKey.rawValue) {
       self.apiKey = secureKey
       return
     }
     
     // Fall back to Info.plist
-    if let bundleKey = provider.getValue(for: .openAIApiKey) {
+    if let bundleKey = AppConfig.value(for: .openAIApiKey) {
       self.apiKey = bundleKey
       return
     }
@@ -71,7 +70,7 @@ class OpenAIService {
       self.apiKey = envKey
       
       // Store in keychain for future use
-      _ = provider.storeInKeychain(value: envKey, key: "OPENAI_API_KEY")
+      _ = KeychainManager.store(value: envKey, key: AppConfig.Keys.openAIApiKey.rawValue)
       return
     }
     

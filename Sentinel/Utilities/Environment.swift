@@ -1,7 +1,8 @@
 import Foundation
+import Security
 
-/// Environment helper to access configuration variables securely
-struct Environment {
+/// Configuration helper to access app variables securely
+struct AppConfig {
     
     /// App configuration variables from Info.plist
     enum Keys: String {

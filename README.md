@@ -4,24 +4,105 @@
   <p>A secure, AI-guided incident reporting and visualization app for private security teams.</p>
 </div>
 
-## Demo
+## Demo Tour
 
-<!-- Use `docs/demo/` for image and gif demo files -->
-<p align="center">
-  <img src="docs/demo/home.png" alt="Home Screen" width="200" style="border-radius: 8px;" />
-  <img src="docs/demo/chat.png" alt="Chat Interface" width="200" style="border-radius: 8px;" />
-  <img src="docs/demo/map.png" alt="Map View" width="200" style="border-radius: 8px;" />
-  <img src="docs/demo/profile.png" alt="Profile & Settings" width="200" style="border-radius: 8px;" />
-</p>
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Home Dashboard</b></td>
+      <td align="center"><b>Map Navigation</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;"/></td>
+      <td><video src="docs/demo/map_dark_demo.mp4" width="280" autoplay loop muted style="border-radius: 8px;"></video></td>
+    </tr>
+  </table>
+</div>
 
----
+#### Videos to Add:
 
-> Screenshots above demonstrate the app’s key UI flows:
->
-> - **Home**: Overview and quick actions.
-> - **Report**: Step-by-step guided incident reporting chat.
-> - **Map**: Animated, interactive incident pins.
-> - **Profile**: User settings and appearance customization.
+1. **`chat_normal_flow.mp4`** - Show the standard incident reporting flow:
+
+2. **`chat_emergency_flow.mp4`** - Demonstrate emergency response workflow:
+
+3. **`chat_image_upload.mp4`** - Show image attachment functionality:
+
+4. **`chat_report_generation.mp4`** - Demonstrate report creation:
+
+### Smart Incident Reporting
+
+AI guides security personnel through structured incident reporting with multimodal capabilities and intelligent prompting.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Emergency Mode</b></td>
+      <td align="center"><b>Chat Interface</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/demo/chat_security_emergency.png" width="280" alt="Emergency Response" style="border-radius: 8px;"/></td>
+      <td><img src="docs/demo/empty_chat_dark.png" width="280" alt="Chat Interface" style="border-radius: 8px;"/></td>
+    </tr>
+  </table>
+</div>
+
+### Interactive Map Experience
+
+Real-time incident tracking with interactive pins and location-based alerts.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Incident Acceptance</b></td>
+      <td align="center"><b>Incident Map</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/demo/map_accept_incident_toast.png" width="280" alt="Accepting Incidents" style="border-radius: 8px;"/></td>
+      <td><img src="docs/demo/map_dark.png" width="280" alt="Incident Map" style="border-radius: 8px;"/></td>
+    </tr>
+  </table>
+</div>
+
+### Incidents Management
+
+View, filter, and manage all incidents in a centralized dashboard.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Light Mode</b></td>
+      <td align="center"><b>Dark Mode</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/demo/incidents_light.png" width="280" alt="Incidents Light Mode" style="border-radius: 8px;"/></td>
+      <td><img src="docs/demo/incidents_dark.png" width="280" alt="Incidents Dark Mode" style="border-radius: 8px;"/></td>
+    </tr>
+  </table>
+</div>
+
+### User Profile & Settings
+
+Customizable user settings with appearance preferences and notification controls.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Profile</b></td>
+      <td align="center"><b>Settings</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/demo/profile_light.png" width="280" alt="User Profile" style="border-radius: 8px;"/></td>
+      <td><img src="docs/demo/settings_dark.png" width="280" alt="App Settings" style="border-radius: 8px;"/></td>
+    </tr>
+  </table>
+</div>
+
+## Technology Stack
+
+- **Frontend**: SwiftUI with MVVM architecture
+- **AI Integration**: OpenAI API with GPT-4 Vision capabilities
+- **Geolocation**: MapKit with custom annotations
+- **Security**: Local keychain storage for sensitive data
 
 ## Setup
 
@@ -74,3 +155,13 @@
 4. **Build and Run**
    - Target: iOS 18.0 or later
    - Scheme: `Sentinel`
+
+## Development Roadmap
+
+- [ ] Push notification integration for emergency alerts
+- [ ] Advanced image recognition for automatic incident classification
+
+## Known Issues
+
+- [ ] Theme toggle no longer switches instantly
+- [ ] Switching to the map tab and quickly back causes an app freeze

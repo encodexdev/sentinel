@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 import Foundation
 import ObjectiveC
+import Security
 
 @main
 struct SentinelApp: App {
@@ -37,10 +38,17 @@ struct SentinelApp: App {
   }
   
   private func debugApiKeyConfiguration() {
-    // Import the environment provider module to access the provider
-    _ = EnvironmentProvider.shared
+    // Check for API key in keychain
+    if let keyInKeychain = KeychainManager.retrieve(key: AppConfig.Keys.openAIApiKey.rawValue) {
+      print("API key found in keychain")
+    }
     
-    // Try to initialize OpenAIService with available API key
+    // Check for API key in Info.plist
+    if let plistKey = AppConfig.value(for: .openAIApiKey) {
+      print("API key found in Info.plist")
+    }
+    
+    // Initialize OpenAIService to validate configuration
     do {
       let service = try OpenAIService()
       print("OpenAIService initialized successfully")

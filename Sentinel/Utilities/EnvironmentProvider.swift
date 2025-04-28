@@ -1,17 +1,18 @@
 import Foundation
+import Security
 
-/// Provider that makes Environment and KeychainManager accessible
-class EnvironmentProvider {
-    static let shared = EnvironmentProvider()
+/// Provider that makes AppConfig and KeychainManager accessible
+class ConfigProvider {
+    static let shared = ConfigProvider()
     
-    /// Get a value from the environment
-    func getValue(for key: Environment.Keys) -> String? {
-        return Environment.value(for: key)
+    /// Get a value from the app configuration
+    func getValue(for key: AppConfig.Keys) -> String? {
+        return AppConfig.value(for: key)
     }
     
-    /// Get a secure value from keychain or environment
-    func getSecureValue(for key: Environment.Keys) -> String? {
-        return Environment.secureValue(for: key)
+    /// Get a secure value from keychain or app configuration
+    func getSecureValue(for key: AppConfig.Keys) -> String? {
+        return AppConfig.secureValue(for: key)
     }
     
     /// Store a value in the keychain
