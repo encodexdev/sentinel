@@ -7,15 +7,14 @@ _A secure, AI-guided incident reporting and visualization app for private securi
 
 </div>
 
----
-
+<div align="center">
 ## Demo Tour
 
 |                                           Home Dashboard                                            |                                             Map Navigation                                             |
 | :-------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
 | <img src="docs/demo/home_light.png" width="280" alt="Home Dashboard" style="border-radius: 8px;" /> | <img src="docs/demo/map_dark_demo.gif" width="280" alt="Map Navigation" style="border-radius: 8px;" /> |
 
----
+## </div>
 
 ### AI-Powered Chat Interface
 
