@@ -179,4 +179,3 @@ This project is built as a visual demo for UI/UX design and is not production re
 - [ ] Theme toggle no longer switches instantly
 - [ ] Switching to the map tab and quickly back causes an app freeze
 - [ ] OPENAI_API_KEY needs to be added through the product scheme
-- [ ] Issues using Published state for async operations in the ChatView
