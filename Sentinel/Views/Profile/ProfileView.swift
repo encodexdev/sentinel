@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ProfileView: View {
-  @Environment(\.dismiss) private var dismiss
   @State private var showingSettings = false
   @StateObject private var vm = ProfileViewModel()
 

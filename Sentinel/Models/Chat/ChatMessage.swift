@@ -7,8 +7,7 @@ struct ChatMessage: Identifiable, Codable {
   let timestamp: Date
   var messageType: MessageType = .chat
 
-  init(id: String, role: ChatRole, content: String, timestamp: Date, messageType: MessageType)
-  {
+  init(id: String, role: ChatRole, content: String, timestamp: Date, messageType: MessageType) {
     self.id = id
     self.role = role
     self.content = content
@@ -18,25 +17,36 @@ struct ChatMessage: Identifiable, Codable {
 }
 
 extension ChatMessage {
-    /// Creates an emergency ChatMessage for the given level.
-    init(emergencyLevel level: String) {
-        self.init(
-            id: UUID().uuidString,
-            role: .user,
-            content: "EMERGENCY: \(level) assistance requested",
-            timestamp: Date(),
-            messageType: .emergency
-        )
-    }
+  /// Creates an emergency ChatMessage for the given level.
+  init(emergencyLevel level: String) {
+    self.init(
+      id: UUID().uuidString,
+      role: .user,
+      content: "EMERGENCY: \(level) assistance requested",
+      timestamp: Date(),
+      messageType: .emergency
+    )
+  }
 
-    /// Creates an image ChatMessage indicating how many images were uploaded.
-    init(imageUploadCount count: Int) {
-        self.init(
-            id: UUID().uuidString,
-            role: .user,
-            content: "Uploaded \(count) image(s)",
-            timestamp: Date(),
-            messageType: .image
-        )
-    }
+  /// Creates an image ChatMessage indicating how many images were uploaded.
+  init(imageUploadCount count: Int) {
+    self.init(
+      id: UUID().uuidString,
+      role: .user,
+      content: "Uploaded \(count) image(s)",
+      timestamp: Date(),
+      messageType: .image
+    )
+  }
+
+  /// Creates a report ChatMessage for an incident.
+  init(reportTitle title: String) {
+    self.init(
+      id: UUID().uuidString,
+      role: .assistant,
+      content: "Incident: \(title)",
+      timestamp: Date(),
+      messageType: .report
+    )
+  }
 }
